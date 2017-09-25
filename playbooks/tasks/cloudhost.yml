@@ -1,1 +1,34 @@
 ---
+
+- name: Copy iw-packages.json to Server
+  copy:
+    dest="/tmp/iw-packages.json"
+    content="{{ interworx_packages | to_nice_json }}"
+  when: mode == 'post'
+
+- name: Setup Interworx Packages
+  command: >
+    nodeworx
+    -unv
+    -c Packages
+    -a import
+    --package_file="/tmp/iw-packages.json"
+    --overwrite=1
+  register: result
+  args:
+    chdir: "/tmp"
+  when: mode == 'post'
+
+- name: Remove Packages File
+  file:
+    path="/tmp/iw-packages.json"
+    state="absent"
+  when: mode == 'post'
+
+- debug:
+    var=result.stdout_lines
+  when: mode == 'post'
+
+- debug:
+    var=result.stderr_lines
+  when: mode == 'post'
