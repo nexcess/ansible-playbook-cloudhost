@@ -1,0 +1,12 @@
+---
+
+- name: Deploy / Update InterWorx Servers
+  hosts: all
+  become: true
+  any_errors_fatal: true
+  pre_tasks:
+    - include: tasks/all.yml mode="pre"
+  roles:
+    - nexcess.server
+  post_tasks:
+    - include: tasks/all.yml mode="post"

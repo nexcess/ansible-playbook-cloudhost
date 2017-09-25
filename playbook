@@ -1,0 +1,53 @@
+#!/bin/bash
+
+PROJECT="metaworx"
+MODE="dev"
+ZONES=("us-midwest-1")
+KEYCHECK="true"
+
+## Check for command
+if [ -z "$1" ]; then
+    echo "You need to specify a playbook (see playbooks/*.yml)"
+    exit 1
+fi
+
+## Check for .vault
+if [ ! -f ./.vault ]; then
+    echo "You need a .vault file to continue"
+    exit 1
+fi
+
+if [ $MODE = "dev" ]; then
+    KEYCHECK="false"
+fi
+
+## Remove all current roles
+ansible-galaxy list | awk '{ print $2 }' | cut -d "," -f 1 | xargs ansible-galaxy remove >/dev/null
+
+## Add back in requirements
+ansible-galaxy install -r requirements.yml >/dev/null
+
+## Suck in puppet-config's network.yaml
+if [[ ! -z "${GITHUB_TOKEN}" ]]; then
+    FILE="https://api.github.com/repos/nexcess/puppet-config/contents/hieradata/common.d/network.yaml"
+
+    pushd inventories/$PROJECT/$MODE/project_vars 1>/dev/null
+    curl --header "Authorization: token $GITHUB_TOKEN" \
+         --header 'Accept: application/vnd.github.v3.raw' \
+         --remote-name \
+         --location $FILE 2>/dev/null
+
+    if [ $? -ne 0 ]; then
+        echo "!! network.yml file NOT DOWNLOADED !!"
+        exit 1
+    fi
+    perl -pi -e 's/nexcess_firewall::cidr_blocks/nexcess_firewall_cidr_blocks/g' network.yaml
+    popd 1>/dev/null
+fi
+
+## Run Playbook
+for zone in "${ZONES[@]}"; do
+    echo "Running: $zone"
+    ANSIBLE_HOST_KEY_CHECKING=$KEYCHECK ansible-playbook -i ./inventories/$PROJECT/$MODE/$zone.ini ./playbooks/$1.yml \
+        || exit;
+done

@@ -1,0 +1,15 @@
+---
+
+- include: base.yml
+
+- name: Setup an InterWorx Server
+  hosts: all
+  become: true
+  any_errors_fatal: true
+  pre_tasks:
+    - include: tasks/cloudhost.yml mode="pre"
+  roles:
+    - nexcess.interworx
+    - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
+  post_tasks:
+    - include: tasks/cloudhost.yml mode="post"
