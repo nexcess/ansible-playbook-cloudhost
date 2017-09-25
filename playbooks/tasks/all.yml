@@ -1,0 +1,28 @@
+---
+
+#
+# There's no easy way in Ansible to get lists of IPs from all servers
+# in the format that you want when you want it.  What this blob does
+# is to collect all of the backnet_addrs grouped by their respective
+# group.  What you end up with at the end is 1 new varaible registered
+# for each group in the format of:
+#
+# <group name>_<backnet_addrs|frontnet_addrs>
+#
+# ex. lb_backnet_addrs = ['ip1', 'ip2' ... ]
+#
+# You can easily use these arrays to do:
+#
+# {{ lb_backnet_addrs | join(',') }} <-- CSV list
+# {{ lb_backnet_addrs | join(':1234,') }}:1234 <-- CSV list w/ports
+#
+
+- name: Collect All Backnets By Group
+  set_fact: {"{{ item }}_backnet_addrs":"{{ groups[item] | map('extract', hostvars, ['backnet_addr']) | list }}"}
+  with_items: "{{ groups }}"
+  run_once: true
+
+- name: Collect All Frontnets By Group
+  set_fact: {"{{ item }}_frontnet_addrs":"{{ groups[item] | map('extract', hostvars, ['frontnet_addr']) | list }}"}
+  with_items: "{{ groups }}"
+  run_once: true
