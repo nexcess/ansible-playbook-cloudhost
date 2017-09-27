@@ -25,9 +25,12 @@
   file:
     path="/tmp/iw-packages.json"
     state="absent"
+  when: result.rc == 0
 
 - debug:
     var=result.stdout_lines
+  when: result.rc != 0
 
 - debug:
     var=result.stderr_lines
+  when: result.rc != 0
