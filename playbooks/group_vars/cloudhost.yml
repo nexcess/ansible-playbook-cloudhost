@@ -1,5 +1,7 @@
 ---
 
+iw_packages: "{{ hostvars[inventory_hostname]['interworx::packages'] | default({}) }}"
+
 iw_ns1: "ns1.nexcess.net"
 iw_ns2: "ns2.nexcess.net"
 iw_ns3: "ns3.nexcess.net"
