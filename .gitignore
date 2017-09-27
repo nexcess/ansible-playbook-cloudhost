@@ -1,4 +1,4 @@
-inventories/*/*/project_vars/network.yaml
 .vault
 roles/
 *.retry
+inventories
