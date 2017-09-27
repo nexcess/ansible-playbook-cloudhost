@@ -3,7 +3,7 @@
 - name: Copy iw-packages.json to Server
   copy:
     dest="/tmp/iw-packages.json"
-    content="{{ interworx_packages | to_nice_json }}"
+    content="{{ interworx::packages | to_nice_json }}"
   when: mode == 'post'
 
 - name: Setup Interworx Packages
