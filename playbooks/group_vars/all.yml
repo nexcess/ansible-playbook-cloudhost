@@ -1,7 +1,1 @@
 ---
-
-## Base Vars
-backnet_host: "{{ inventory_hostname.split('.')[0] }}-int"
-server_selinux_enforcing: false
-kernelcare_included: true
-puppet_agent_fire_and_forget: false
