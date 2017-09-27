@@ -1,12 +1,25 @@
 ---
 
 - name: Deploy / Update InterWorx Servers
-  hosts: all
+  hosts: cloudhost
   become: true
   any_errors_fatal: true
   pre_tasks:
+    - include_vars:
+        dir="{{ inventory_dir }}/project_vars"
+      ignore_errors: true
+    - include_vars:
+        dir="{{ inventory_dir }}/region_vars"
+        files_matching="{{ nex_zone }}.*"
+      ignore_errors: true
+    - include_vars:
+        dir="{{ inventory_dir }}/host_vars"
+        files_matching="{{ inventory_hostname }}.yml"
+      ignore_errors: true
+    - include: tasks/all.yml mode="pre"
+
     - include: tasks/all.yml mode="pre"
   roles:
-    - nexcess.server
+
   post_tasks:
     - include: tasks/all.yml mode="post"

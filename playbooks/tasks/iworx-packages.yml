@@ -1,9 +1,13 @@
 ---
 
+- name: Convert Puppet IntetrWorx Packages To InterWorx Format
+  set_fact: { iw_packages: "{{ iw_packages | default([]) + [item.value] }}"}
+  with_dict: "{{ hostvars[inventory_hostname]['interworx::packages'] }}"
+
 - name: Copy iw-packages.json to Server
   copy:
     dest="/tmp/iw-packages.json"
-    content="{{ hostvars[inventory_hostname]['interworx::packages'] | to_nice_json }}"
+    content="{{ iw_packages | to_nice_json }}"
 
 - name: Setup Interworx Packages
   command: >
