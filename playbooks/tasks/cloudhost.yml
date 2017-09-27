@@ -3,4 +3,4 @@
 - include: iworx-packages.yml
   when:
     - hostvars[inventory_hostname]['interworx::packages'] is defined
-    - mode = "post"
+    - mode == "post"
