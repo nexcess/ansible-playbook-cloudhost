@@ -1,0 +1,17 @@
+---
+
+- name: Update iworx.ini Plugins Settings
+  ini_file:
+    path: /usr/local/interworx/iworx.ini
+    section: "plugins"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_dict: "{{ hostvars[inventory_hostname]['interworx::iworx_ini::settings']['plugins'] }}"
+
+- name: Update iworx.ini Update Settings
+  ini_file:
+    path: /usr/local/interworx/iworx.ini
+    section: "update"
+    option: "{{ item.key }}"
+    value: "{{ item.value }}"
+  with_dict: "{{ hostvars[inventory_hostname]['interworx::iworx_ini::settings']['update'] }}"

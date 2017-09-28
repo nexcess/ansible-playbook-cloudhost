@@ -1,5 +1,10 @@
 ---
 
+- include: iworx-ini.yml
+  when:
+    - hostvars[inventory_hostname]['interworx::iworx_ini::settings'] is defined
+    - mode == "post"
+
 - include: iworx-packages.yml
   when:
     - hostvars[inventory_hostname]['interworx::packages'] is defined
