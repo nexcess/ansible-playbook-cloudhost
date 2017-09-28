@@ -8,5 +8,8 @@
     - include: tasks/all.yml mode="pre"
   roles:
     - nexcess.server
+    - { role: nexcess.php, php_prefix: "php56", php_single_version: false }      
+    - { role: nexcess.php, php_prefix: "php70", php_single_version: false }
+    - { role: nexcess.php, php_prefix: "php71", php_single_version: false }
   post_tasks:
     - include: tasks/all.yml mode="post"
