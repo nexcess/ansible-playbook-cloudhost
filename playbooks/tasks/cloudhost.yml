@@ -4,3 +4,8 @@
   when:
     - hostvars[inventory_hostname]['interworx::packages'] is defined
     - mode == "post"
+
+- include: iworx-baseconfig.yml
+  when:
+    - hostvars[inventory_hostname]['interworx::iworx_ini::settings'] is defined
+    - mode == "post"
