@@ -6,7 +6,7 @@
     section: "plugins"
     option: "{{ item.key }}"
     value: "{{ item.value }}"
-      with_dict: "{{ hostvars[inventory_hostname]['interworx::iworx_ini::settings']['plugins'] }}"
+  with_dict: "{{ hostvars[inventory_hostname]['interworx::iworx_ini::settings']['plugins'] }}"
 
 - name: Update iworx.ini Update Settings
   ini_file:
@@ -14,4 +14,4 @@
     section: "update"
     option: "{{ item.key }}"
     value: "{{ item.value }}"
-      with_dict: "{{ hostvars[inventory_hostname]['interworx::iworx_ini::settings']['update'] }}"
+  with_dict: "{{ hostvars[inventory_hostname]['interworx::iworx_ini::settings']['update'] }}"
