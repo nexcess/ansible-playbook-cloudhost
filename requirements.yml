@@ -6,5 +6,3 @@
   name: "nexcess.interworx"
 - src: "git+https://github.com/nexcess/ansible-role-puppet.git"
   name: "nexcess.puppet"
-- src: "git+https://github.com/nexcess/ansible-role-php.git"
-  name: "nexcess.php"
