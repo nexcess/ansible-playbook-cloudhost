@@ -1,5 +1,9 @@
 ---
 
+## Base Vars
+nexcess_repo_enabled: "false"
+
+## IWorx Vars
 iw_ns1: "ns1.nexcess.net"
 iw_ns2: "ns2.nexcess.net"
 iw_ns3: "ns3.nexcess.net"
