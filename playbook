@@ -24,7 +24,7 @@ ansible-galaxy install -r requirements.yml >/dev/null
 ## Suck in puppet-config's network.yaml
 if [[ ! -z "${GITHUB_TOKEN}" ]]; then
     pushd inventories/$PROJECT/$MODE/project_vars 1>/dev/null
-    FILE="https://api.github.com/repos/nexcess/puppet-config/contents/hieradata/common.d/network.yaml"
+    FILE="https://api.github.com/repos/nexcess/puppet-config/contents/data/common.d/network.yaml"
     curl --header "Authorization: token $GITHUB_TOKEN" \
          --header 'Accept: application/vnd.github.v3.raw' \
          --remote-name \
@@ -34,9 +34,8 @@ if [[ ! -z "${GITHUB_TOKEN}" ]]; then
         echo "!! network.yml file NOT DOWNLOADED !!"
         exit 1
     fi
-    perl -pi -e 's/nexcess_firewall::cidr_blocks/nexcess_firewall_cidr_blocks/g' network.yaml
 
-    FILE="https://api.github.com/repos/nexcess/puppet-config/contents/hieradata/common.d/interworx.yaml"
+    FILE="https://api.github.com/repos/nexcess/puppet-config/contents/data/common.d/interworx.yaml"
     curl --header "Authorization: token $GITHUB_TOKEN" \
          --header 'Accept: application/vnd.github.v3.raw' \
          --remote-name \
