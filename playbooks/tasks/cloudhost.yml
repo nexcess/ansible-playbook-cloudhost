@@ -9,3 +9,22 @@
   when:
     - hostvars[inventory_hostname]['interworx::packages'] is defined
     - mode == "post"
+
+- name: Enable Interworx SCL PHP Support
+  command: >
+    nodeworx
+    -un
+    -c Http
+    -a enableMultiplePhp
+  when: mode == 'post'
+
+- name: Enable PHP Versions + Set Default Version
+  command: >
+    nodeworx
+    -un
+    -c Http
+    -a multiplePhpOptions 
+    --enabled_php_versions /opt/remi/php56,/opt/remi/php70,/opt/remi/php71 
+    --default_php_version /opt/remi/php71
+  when: mode == 'post'
+
