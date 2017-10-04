@@ -10,21 +10,6 @@
     - hostvars[inventory_hostname]['interworx::packages'] is defined
     - mode == "post"
 
-- name: Set Base InterWorx Settings
-  command: >
-    nodeworx
-    -unv
-    -c Settings
-    -a edit
-    --iworx_fileman=0
-    --iworx.passwords_length=16
-    --apache_sni_enabled=1
-    --siteworx.logs_savexferlogs=0
-    --siteworx.logs_saveerrlogs=0
-    --iworx_default_timezone="{{ ntp_timezone }}"
-    --stats.awstats_enabled=0
-    --stats.analog_enabled=0
-    --stats.webalizer_enabled=0
-    --rrd_ping_host=nexcess.net
-    --quota_partition="/"
-    --domain-blacklist="nexcess.net,thermo.io"
+- include: iworx-settings.yml
+  when:
+    - mode == "post"
