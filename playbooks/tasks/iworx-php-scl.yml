@@ -23,3 +23,4 @@
     --enabled_php_versions "{{item.path}}"
     --default_php_version "{{item.path}}"
   with_items: "{{php_dir_names.files}}"
+
