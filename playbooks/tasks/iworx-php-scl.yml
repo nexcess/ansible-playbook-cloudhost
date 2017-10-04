@@ -9,7 +9,7 @@
 
 - name: Find Installed PHP Versions
   find:
-    paths: "/opt/remi/"
+    paths: "{{ php_remi_root }}"
     patterns: "php*"
     file_type: "directory"
   register: php_dir_names
@@ -20,8 +20,8 @@
     -un
     -c Http
     -a multiplePhpOptions
-    --enabled_php_versions "{{item.path}}"
-    --default_php_version "{{item.path}}"
-  with_items: "{{php_dir_names.files}}"
+    --enabled_php_versions "{{ item.path }}"
+    --default_php_version "{{ item.path }}"
+  with_items: "{{ php_dir_names.files }}"
 
 
