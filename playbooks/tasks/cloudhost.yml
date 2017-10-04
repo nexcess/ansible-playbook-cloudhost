@@ -9,3 +9,7 @@
   when:
     - hostvars[inventory_hostname]['interworx::packages'] is defined
     - mode == "post"
+
+- include: iworx-settings.yml
+  when:
+    - mode == "post"
