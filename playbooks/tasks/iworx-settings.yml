@@ -10,7 +10,6 @@
     --apache_sni_enabled=1
     --siteworx.logs_savexferlogs=1
     --siteworx.logs_saveerrlogs=1
-    --iworx_default_timezone="{{ ntp_timezone }}"
     --stats.awstats_enabled=0
     --stats.analog_enabled=0
     --stats.webalizer_enabled=0
