@@ -19,3 +19,5 @@
     name="apf"
     enabled="yes"
     state="started"
+  when:
+    - mode == "post"
