@@ -1,0 +1,18 @@
+
+- name: Set Base InterWorx Settings
+  command: >
+    nodeworx
+    -unv
+    -c Settings
+    -a edit
+    --iworx_fileman=0
+    --iworx.passwords_length=16
+    --apache_sni_enabled=1
+    --siteworx.logs_savexferlogs=1
+    --siteworx.logs_saveerrlogs=1
+    --iworx_default_timezone="{{ ntp_timezone }}"
+    --stats.awstats_enabled=0
+    --stats.analog_enabled=0
+    --stats.webalizer_enabled=0
+    --rrd_ping_host=nexcess.net
+    --domain-blacklist="nexcess.net,thermo.io"
