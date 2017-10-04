@@ -7,12 +7,19 @@
     -c Http
     -a enableMultiplePhp
 
+- name: Find Installed PHP Versions
+  find:
+    paths: "/opt/remi/"
+    patterns: "php*"
+    file_type: "directory"
+  register: php_dir_names
+
 - name: Enable PHP Versions + Set Default Version
   command: >
     nodeworx
     -un
     -c Http
     -a multiplePhpOptions
-    --enabled_php_versions /opt/remi/php56,/opt/remi/php70,/opt/remi/php71
-    --default_php_version /opt/remi/php71
-
+    --enabled_php_versions "{{item.path}}"
+    --default_php_version "{{item.path}}"
+  with_items: "{{php_dir_names.files}}"
