@@ -16,7 +16,7 @@
     -un
     -c Http
     -a enableMultiplePhp
-  when: mode == 'post'
+  when: mode == "post"
 
 - name: Enable PHP Versions + Set Default Version
   command: >
@@ -26,5 +26,5 @@
     -a multiplePhpOptions 
     --enabled_php_versions /opt/remi/php56,/opt/remi/php70,/opt/remi/php71 
     --default_php_version /opt/remi/php71
-  when: mode == 'post'
+  when: mode == "post"
 
