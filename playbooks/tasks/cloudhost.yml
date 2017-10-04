@@ -13,3 +13,9 @@
 - include: iworx-settings.yml
   when:
     - mode == "post"
+
+- name: Ensure APF Start-on-boot
+  service:
+    name="apf"
+    enabled="yes"
+    state="started"
