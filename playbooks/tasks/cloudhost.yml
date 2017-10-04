@@ -14,8 +14,13 @@
   when:
     - mode == "post"
 
+- include: iworx-php-scl.yml 
+  when: 
+    - mode == "post"
+
 - name: Ensure APF Start-on-boot
   service:
     name="apf"
     enabled="yes"
     state="started"
+
