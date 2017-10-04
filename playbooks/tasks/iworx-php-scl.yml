@@ -12,9 +12,9 @@
     paths: "{{ php_remi_root }}"
     patterns: "php*"
     file_type: "directory"
-  register: php_dir_names
+  register: directory_php_names
 
-- name: Enable PHP Versions + Set Default Version
+- name: Enable PHP Versions
   command: >
     nodeworx
     -un
@@ -22,6 +22,18 @@
     -a multiplePhpOptions
     --enabled_php_versions "{{ item.path }}"
     --default_php_version "{{ item.path }}"
-  with_items: "{{ php_dir_names.files }}"
+  with_items: "{{ directory_php_names.files }}"
 
+- name: Find Latest PHP Version
+  shell: >
+    ls -1r --sort version "{{ php_remi_root }}" | awk 'NR==1{ print $1 }'
+  register: latest_php_version
+
+- name: Set Default PHP Version to Latest
+  command: >
+    nodeworx
+    -un
+    -c Http
+    -a multiplePhpOptions
+    --default_php_version "{{ php_remi_root }}/{{ latest_php_version.stdout }}"
 
