@@ -8,21 +8,17 @@
     -a enableMultiplePhp
 
 - name: Find Installed PHP Versions
-  find:
-    paths: "{{ php_remi_root }}"
-    patterns: "php*"
-    file_type: "directory"
+  shell: >
+    ls -dm "{{ php_remi_root }}"/* | tr -d ' '
   register: directory_php_names
 
-- name: Enable PHP Versions
+- name: Enable Installed PHP Versions
   command: >
     nodeworx
     -un
     -c Http
     -a multiplePhpOptions
-    --enabled_php_versions "{{ item.path }}"
-    --default_php_version "{{ item.path }}"
-  with_items: "{{ directory_php_names.files }}"
+    --enabled_php_versions "{{ directory_php_names.stdout }}"
 
 - name: Find Latest PHP Version
   shell: >
