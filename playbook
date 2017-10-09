@@ -46,6 +46,17 @@ if [[ ! -z "${GITHUB_TOKEN}" ]]; then
         exit 1
     fi
 
+    FILE="https://api.github.com/repos/nexcess/puppet-config/contents/data/common.d/apache.yaml"
+    curl --header "Authorization: token $GITHUB_TOKEN" \
+         --header 'Accept: application/vnd.github.v3.raw' \
+         --remote-name \
+         --location $FILE 2>/dev/null
+
+    if [ $? -ne 0 ]; then
+        echo "!! apache.yml file NOT DOWNLOADED !!"
+        exit 1
+    fi
+
     popd 1>/dev/null
 fi
 
