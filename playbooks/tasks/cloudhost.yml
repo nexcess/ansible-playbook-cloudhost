@@ -25,3 +25,7 @@
     state="started"
   when:
     - mode == "post"
+
+- include: manage-services.yml
+  when:
+    - mode == "post"
