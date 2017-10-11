@@ -1,0 +1,22 @@
+---
+
+# also removes `setroubleshootd` and `tuned` since they depend on it
+- name: Remove polkit
+  yum:
+    name="polkit"
+    state="absent"
+
+- name: Disable certmonger
+  service:
+    name="certmonger"
+    enabled="no"
+    state="stopped"
+
+- name: Disable lvm metad
+  service:
+    name="lvm2-lvmetad.{{ item }}"
+    enabled="no"
+    state="stopped"
+  with_items:
+    - service
+    - socket
