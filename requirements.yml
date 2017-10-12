@@ -8,3 +8,5 @@
   name: "nexcess.puppet"
 - src: "git+https://github.com/nexcess/ansible-role-php.git"
   name: "nexcess.php"
+- src: "git+https://github.com/nexcess/ansible-role-mariadb.git"
+  name: "nexcess.mariadb"
