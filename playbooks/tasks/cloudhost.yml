@@ -11,21 +11,17 @@
     - mode == "post"
 
 - include: iworx-settings.yml
-  when:
-    - mode == "post"
+  when: mode == "post"
 
 - include: iworx-php-scl.yml
-  when:
-    - mode == "post"
+  when: mode == "post"
+
+- include: manage-services.yml
+  when: mode == "post"
 
 - name: Ensure APF Start-on-boot
   service:
     name="apf"
     enabled="yes"
     state="started"
-  when:
-    - mode == "post"
-
-- include: manage-services.yml
-  when:
-    - mode == "post"
+  when: mode == "post"
