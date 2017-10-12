@@ -13,7 +13,7 @@
     - { role: nexcess.php, php_prefix: "php70", php_single_version: false }
     - { role: nexcess.php, php_prefix: "php71", php_single_version: false }
     - nexcess.interworx
-    - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
     - nexcess.mariadb
+    - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
   post_tasks:
     - include: tasks/cloudhost.yml mode="post"
