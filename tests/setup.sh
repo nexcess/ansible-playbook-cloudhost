@@ -1,16 +1,12 @@
 #!/bin/sh -xe
 
-el_version=$1
+if [ "$1" = "7" ]; then
+    docker pull geerlingguy/docker-centos7-ansible:latest
+    docker run --detach --privileged --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro geerlingguy/docker-centos7-ansible:latest /usr/lib/systemd/systemd --volume=`pwd`:/etc/ansible:ro
 
-if [ "$el_version" = "7" ]; then
+    ID=$(docker ps | grep centos | awk '{print $1}')
 
-docker run --privileged -d -ti -e "container=docker"  -v /sys/fs/cgroup:/sys/fs/cgroup -v `pwd`:/htcondor-ce:rw  centos:centos${OS_VERSION}   /usr/sbin/init
-DOCKER_CONTAINER_ID=$(docker ps | grep centos | awk '{print $1}')
-docker logs $DOCKER_CONTAINER_ID
-#docker exec -ti $DOCKER_CONTAINER_ID /bin/bash -xec "bash -xe /htcondor-ce/tests/test_inside_docker.sh ${OS_VERSION};
-#  echo -ne \"------\nEND HTCONDOR-CE TESTS\n\";"
-docker ps -a
-docker stop $DOCKER_CONTAINER_ID
-docker rm -v $DOCKER_CONTAINER_ID
-
+    docker logs $ID
+    docker exec --tty $ID env TERM=xterm ansible --version
+    docker exec --tty $ID env TERM=xterm ansible-playbook /path/to/ansible/playbook.yml --syntax-check
 fi
