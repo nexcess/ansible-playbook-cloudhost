@@ -9,6 +9,9 @@ iw_ns2: "ns2.nexcess.net"
 iw_ns3: "ns3.nexcess.net"
 iw_ns4: "ns4.nexcess.net"
 
+## PHP
+php_single_version: false
+
 ## Firewall - Ultimately handled by APF but set this to start
 firewall_v4_group_rules:
   401 allow iworx to the world:
