@@ -1,17 +1,13 @@
 
 FROM centos:centos7
-RUN yum clean all && \
-    yum -y install epel-release && \
-    yum -y install ansible git
-WORKDIR /opt
-#RUN eval git clone git@github.com:nexcess/puppet-config.git \
-#    -b production puppet
-ADD ./hosts /etc/ansible/hosts
-WORKDIR /opt/playbook
+RUN yum -y install epel-release ansible git
+COPY .. /etc/ansible
+COPY ./hosts /etc/ansible/hosts
+WORKDIR /etc/ansible
 ENV PYTHONUNBUFFERED true
 ENV ANSIBLE_FORCE_COLOR true
-RUN [ -f requirements.yml ] && \
-    ansible-galaxy install -r requirements.yml
+RUN [ -f ./requirements.yml ] && \
+    ansible-galaxy install -r ./requirements.yml
 CMD eval ansible-playbook \
-    -i /etc/ansible/hosts \
+    -i ./hosts \
     ./playbooks/setup

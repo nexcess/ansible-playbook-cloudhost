@@ -10,7 +10,7 @@
     --apache_sni_enabled=1
     --siteworx.logs_savexferlogs=1
     --siteworx.logs_saveerrlogs=1
-    --stats.awstats_enabled=1
+    --stats.awstats_enabled=0
     --stats.analog_enabled=0
     --stats.webalizer_enabled=0
     --rrd_ping_host=nexcess.net
