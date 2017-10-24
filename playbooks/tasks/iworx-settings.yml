@@ -14,4 +14,3 @@
     --stats.analog_enabled=0
     --stats.webalizer_enabled=0
     --rrd_ping_host=nexcess.net
-    --domain-blacklist="nexcess.net,thermo.io"
