@@ -1,7 +1,8 @@
 ---
 
 ## Base Vars
-nexcess_repo_enabled: "false"
+nexcess_repo_enabled: false
+server_selinux_enforcing: false
 
 ## IWorx Vars
 iw_ns1: "ns1.nexcess.net"
