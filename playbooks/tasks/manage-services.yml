@@ -11,6 +11,7 @@
     name="certmonger"
     enabled="no"
     state="stopped"
+  ignore_errors: true
 
 - name: Disable lvm metad
   service:
@@ -20,3 +21,4 @@
   with_items:
     - service
     - socket
+  ignore_errors: true
