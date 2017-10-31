@@ -47,11 +47,6 @@
   when:
     - vhost_file_result.stat.exists == false
 
-- name: Check LetsEncrypt Plugin Status
-  command: nodeworx -unc Plugins -a queryEdit --plugin_name lets-encrypt -o pretty
-  register: letsencrypt_status
-
-
 - name: Enable LetsEncrypt Plugin
   command: >
     nodeworx
@@ -61,8 +56,6 @@
     --plugin_name lets-encrypt
     --status 1
   register: letsencrypt_enable_result
-  when:
-    - (letsencrypt_status.stdout | from_json | json_query('status')) == "0"
 
 - name: Check For Existing Certificate File
   stat:
