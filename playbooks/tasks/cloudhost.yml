@@ -16,6 +16,9 @@
 - include: iworx-php-scl.yml
   when: mode == "post"
 
+- include: iworx-ssl-services.yml
+  when: mode == "post"
+
 - include: manage-services.yml
   when: mode == "post"
 
