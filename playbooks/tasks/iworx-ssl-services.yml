@@ -13,15 +13,17 @@
 - name: Add Server Name Siteworx Account
   command: >
     nodeworx
-    -un
+    -unv
     -c Siteworx
     -a add
     --master_domain "{{ ansible_fqdn }}"
     --uniqname "server"
-    --nickname "Server Hostname Account"
+    --nickname "NEXCESS.NET"
     --email "admin@nexcess.net"
     --password "{{ random_password }}"
     --confirm_password "{{ random_password }}"
+    --master_domain_ipv4 "{{ ansible_default_ipv4.address }}"
+    --database_server localhost
     --OPT_STORAGE 100
     --OPT_BANDWIDTH 99
     --OPT_EMAIL_ALIASES 0
@@ -53,7 +55,7 @@
 - name: Enable LetsEncrypt Plugin
   command: >
     nodeworx
-    -un
+    -unv
     -c Plugins
     -a edit
     --plugin_name lets-encrypt
@@ -70,7 +72,7 @@
 - name: Generate LetsEncrypt Certificate
   command: >
     siteworx
-    -un
+    -unv
     --login_domain "{{ ansible_fqdn }}"
     -c Ssl
     -a generateLetsEncrypt
@@ -84,7 +86,7 @@
 - name: Install Certificate to Server Services
   command: >
     nodeworx
-    -un
+    -unv
     -c Ssl
     -a updateall
     --cert_source domain
