@@ -1,0 +1,95 @@
+---
+- name: Check For Existing Vhost File
+  stat:
+    path="/etc/httpd/conf.d/vhost_{{ ansible_fqdn }}.conf"
+  register: vhost_file_result
+
+- name: Generate a Random Password
+  set_fact:
+    random_password: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
+
+- name: Add Server Name Siteworx Account
+  command: >
+    nodeworx
+    -un
+    -c Siteworx
+    -a add
+    --master_domain "{{ ansible_fqdn }}"
+    --uniqname "server"
+    --nickname "Server Hostname Account"
+    --email "admin@nexcess.net"
+    --password "{{ random_password }}"
+    --confirm_password "{{ random_password }}"
+    --OPT_STORAGE 100
+    --OPT_BANDWIDTH 99
+    --OPT_EMAIL_ALIASES 0
+    --OPT_EMAIL_AUTORESPONDERS 0
+    --OPT_EMAIL_BOXES 0
+    --OPT_EMAIL_GROUPS 0
+    --OPT_FTP_ACCOUNTS 0
+    --OPT_MYSQL_DBS 0
+    --OPT_MYSQL_DB_USERS 0
+    --OPT_POINTER_DOMAINS 0
+    --OPT_SLAVE_DOMAINS 0
+    --OPT_SUBDOMAINS 0
+    --OPT_BACKUP 1
+    --OPT_CGI_ACCESS 0
+    --OPT_CRONTAB 0
+    --OPT_DNS_RECORDS 0
+    --OPT_SSL 1
+    --OPT_BURSTABLE 1
+    --OPT_SAVE_XFER_LOGS 1
+    --restart_httpd 1
+    --catchall_access 0
+    --php_version system-php
+    --php_available system-php
+  register: siteworx_add_result
+  when:
+    - vhost_file_result.stat.exists == false
+
+- name: Check LetsEncrypt Plugin Status
+  command: nodeworx -unc Plugins -a queryEdit --plugin_name lets-encrypt -o pretty
+  register: letsencrypt_status
+
+
+- name: Enable LetsEncrypt Plugin
+  command: >
+    nodeworx
+    -un
+    -c Plugins
+    -a edit
+    --plugin_name lets-encrypt
+    --status 1
+  register: letsencrypt_enable_result
+  when:
+    - (letsencrypt_status.stdout | from_json | json_query('status')) == "0"
+
+- name: Check For Existing Certificate File
+  stat:
+    path="/home/server/var/{{ ansible_fqdn }}/ssl/{{ ansible_fqdn }}.crt"
+  register: cert_file_result
+
+- name: Generate LetsEncrypt Certificate
+  command: >
+    siteworx
+    -un
+    --login_domain "{{ ansible_fqdn }}"
+    -c Ssl
+    -a generateLetsEncrypt
+    --domain "{{ ansible_fqdn }}"
+    --commonName "{{ ansible_fqdn }}"
+  register: letsencrypt_generate_result
+  when:
+    - cert_file_result.stat.exists == false
+
+- name: Install Certificate to Server Services
+  command: >
+    nodeworx
+    -un
+    -c Ssl
+    -a updateall
+    --cert_source domain
+    --domain "{{ ansible_fqdn }}"
+    --restart_now 1
+  register: install_cert_result
+
