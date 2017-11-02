@@ -14,3 +14,15 @@
     --stats.analog_enabled=0
     --stats.webalizer_enabled=0
     --rrd_ping_host=nexcess.net
+
+- name: Set FTP to Port 990
+  command: >
+    sed -i 's/^Port.*21$/Port  990/g' /etc/proftpd.conf
+
+- name: Set FTP InterWorx Settings
+  command: >
+    nodeworx
+    -unv
+    -c Ftp
+    -a serverOptions
+    --tlsrequired=1
