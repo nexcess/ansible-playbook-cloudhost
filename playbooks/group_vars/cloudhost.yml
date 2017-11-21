@@ -3,6 +3,7 @@
 ## Base Vars
 nexcess_repo_enabled: false
 server_selinux_enforcing: false
+mysql_pid_file: /var/lib/mysql/mysqld.pid
 
 ## IWorx Vars
 iw_ns1: "ns1.nexcess.net"
