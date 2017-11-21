@@ -10,3 +10,5 @@
   name: "nexcess.php"
 - src: "git+https://github.com/nexcess/ansible-role-mariadb.git"
   name: "nexcess.mariadb"
+- src: "git+https://github.com/nexcess/ansible-role-repo-nexcess.git"
+  name: "nexcess.repo"
