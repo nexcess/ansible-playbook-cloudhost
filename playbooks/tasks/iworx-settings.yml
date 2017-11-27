@@ -19,10 +19,10 @@
   command: >
     sed -i 's/^Port.*21$/Port  990/g' /etc/proftpd.conf
 
-- name: Set FTP InterWorx Settings
-  command: >
-    nodeworx
-    -unv
-    -c Ftp
-    -a serverOptions
-    --tlsrequired=1
+#- name: Set FTP InterWorx Settings
+#  command: >
+#    nodeworx
+#    -unv
+#    -c Ftp
+#    -a serverOptions
+#    --tlsrequired=1
