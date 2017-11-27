@@ -7,9 +7,9 @@
 
 - name: Generate a Random Password
   set_fact:
-    random_password: "{{ lookup('password', '/dev/null length=15 chars=ascii_letters') }}"
+    random_password: "{{ lookup('password', '/dev/null length=24 chars=ascii_letters') }}"
   ignore_errors: yes
-  
+
 - name: Add Server Name Siteworx Account
   command: >
     nodeworx
