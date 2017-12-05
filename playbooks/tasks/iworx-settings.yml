@@ -8,8 +8,8 @@
     --iworx_fileman=0
     --iworx.passwords_length=16
     --apache_sni_enabled=1
-    --siteworx.logs_savexferlogs=1
-    --siteworx.logs_saveerrlogs=1
+    --siteworx.logs_savexferlogs=7
+    --siteworx.logs_saveerrlogs=7
     --stats.awstats_enabled=1
     --stats.analog_enabled=0
     --stats.webalizer_enabled=0
