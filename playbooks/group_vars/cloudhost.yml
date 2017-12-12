@@ -26,3 +26,6 @@ firewall_v4_group_rules:
 firewall_v6_group_rules:
   401 allow iworx to the world:
     - "-A INPUT -p tcp --dport 2443 -j ACCEPT"
+
+## Prevent puppet from running in a non-blocking fashion
+puppet_agent_fire_and_forget: false
