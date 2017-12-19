@@ -1,0 +1,14 @@
+---
+- name: Install libnss-mysql
+  yum:
+    name="libnss-mysql"
+    state="present"
+
+- name: Enable siteworx multiple ssh feature
+  command: >
+    /home/interworx/bin/config.pex
+    --global
+    --set
+    --name sitworx_ssh_feature
+    --value on
+

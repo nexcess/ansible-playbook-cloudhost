@@ -19,6 +19,9 @@
 - include: iworx-ssl-services.yml
   when: mode == "post"
 
+- include: iworx-multi-ssh.yml
+  when: mode == "post"
+
 - include: manage-services.yml
   when: mode == "post"
 
