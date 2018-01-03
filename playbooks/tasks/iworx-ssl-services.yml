@@ -3,12 +3,10 @@
   stat:
     path="/etc/httpd/conf.d/vhost_{{ ansible_fqdn }}.conf"
   register: vhost_file_result
-  ignore_errors: yes
 
 - name: Generate a Random Password
   set_fact:
     random_password: "{{ lookup('password', '/dev/null length=24 chars=ascii_letters') }}"
-  ignore_errors: yes
 
 - name: Add Server Name Siteworx Account
   command: >
@@ -50,7 +48,6 @@
   register: siteworx_add_result
   when:
     - vhost_file_result.stat.exists == false
-  ignore_errors: yes
 
 - name: Enable LetsEncrypt Plugin
   command: >
@@ -61,13 +58,11 @@
     --plugin_name lets-encrypt
     --status 1
   register: letsencrypt_enable_result
-  ignore_errors: yes
 
 - name: Check For Existing Certificate File
   stat:
     path="/home/server/var/{{ ansible_fqdn }}/ssl/{{ ansible_fqdn }}.crt"
   register: cert_file_result
-  ignore_errors: yes
 
 - name: Generate LetsEncrypt Certificate
   command: >
@@ -81,7 +76,6 @@
   register: letsencrypt_generate_result
   when:
     - cert_file_result.stat.exists == false
-  ignore_errors: yes
 
 - name: Install Certificate to Server Services
   command: >
@@ -93,4 +87,3 @@
     --domain "{{ ansible_fqdn }}"
     --restart_now 1
   register: install_cert_result
-  ignore_errors: yes

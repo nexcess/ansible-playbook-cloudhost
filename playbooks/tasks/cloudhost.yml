@@ -15,15 +15,19 @@
 
 - include: iworx-php-scl.yml
   when: mode == "post"
+  ignore_errors: yes
 
 - include: iworx-ssl-services.yml
   when: mode == "post"
+  ignore_errors: yes
 
 - include: iworx-multi-ssh.yml
   when: mode == "post"
+  ignore_errors: yes
 
 - include: manage-services.yml
   when: mode == "post"
+  ignore_errors: yes
 
 - name: Ensure APF Start-on-boot
   service:
@@ -31,12 +35,3 @@
     enabled="yes"
     state="started"
   when: mode == "post"
-
-# Dumb fix for mariadb trying to write to a mis-perm'd /dev/shm
-- name: Fix /dev/shm Perms
-  file:
-    path="/dev/shm"
-    mode=1777
-    owner="root"
-    group="root"
-  when: mode == "pre"
