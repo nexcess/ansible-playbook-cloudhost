@@ -31,3 +31,12 @@
     enabled="yes"
     state="started"
   when: mode == "post"
+
+# Dumb fix for mariadb trying to write to a mis-perm'd /dev/shm
+- name: Fix /dev/shm Perms
+  file:
+    path="/dev/shm"
+    mode=1777
+    owner="root"
+    group="root"
+  when: mode == "pre"
