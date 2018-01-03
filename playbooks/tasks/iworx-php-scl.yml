@@ -3,7 +3,7 @@
 - name: Enable Interworx SCL PHP Support
   command: >
     nodeworx
-    -un
+    -unv
     -c Http
     -a enableMultiplePhp
 
@@ -15,7 +15,7 @@
 - name: Enable Installed PHP Versions
   command: >
     nodeworx
-    -un
+    -unv
     -c Http
     -a multiplePhpOptions
     --enabled_php_versions "{{ directory_php_names.stdout }}"
@@ -28,8 +28,7 @@
 - name: Set Default PHP Version to Latest
   command: >
     nodeworx
-    -un
+    -unv
     -c Http
     -a multiplePhpOptions
     --default_php_version "{{ php_remi_root }}/{{ latest_php_version.stdout }}"
-
