@@ -15,6 +15,8 @@ iw_theme_name: "nexcess"
 iw_theme_git_repo: "https://github.com/nexcess/interworx-theme.git"
 iw_theme_git_version: "master"
 
+iw_ssl_email: "ssladmin@nexcess.net"
+
 ## PHP
 php_single_version: false
 
