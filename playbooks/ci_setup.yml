@@ -1,0 +1,31 @@
+---
+- hosts: localhost
+  become: true
+  any_errors_fatal: true
+
+  pre_tasks:
+    - name: include cloudhost vars
+      include_vars:
+        file: group_vars/cloudhost.yml
+
+    - name: include ci vars
+      include_vars:
+        file: ../spec/vars.yml
+
+    - name: ensure /etc/sysconfig/network file
+      file:
+        path: /etc/sysconfig/network
+        state: touch
+      changed_when: false
+
+    - include: tasks/cloudhost.yml mode="pre"
+
+  roles:
+    - { role: nexcess.php, php_prefix: "php56" }
+    - { role: nexcess.php, php_prefix: "php70" }
+    - { role: nexcess.php, php_prefix: "php71" }
+    - nexcess.interworx
+    - nexcess.mariadb
+  
+  post_tasks:
+    - include: tasks/cloudhost.yml mode="post"

@@ -1,0 +1,12 @@
+---
+iw_release_channel: 'beta'
+iw_master_email: 'citests@nexcess.net'
+iw_master_password: 'nexcesscitests'
+iw_license_key: 'NEXCESS_CI_LICENSE'
+iw_ssl_email: 'citests@nexcess.net'
+iw_ns1: '8.8.8.8'
+iw_ns2: '8.8.4.4'
+iw_setup_ssl: false
+iw_skip_hosts_edit: true
+firewall_included: false
+server_set_sysctl_base: false
