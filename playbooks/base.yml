@@ -17,8 +17,6 @@
         files_matching="{{ inventory_hostname }}.yml"
       ignore_errors: true
     - include: tasks/all.yml mode="pre"
-
-    - include: tasks/all.yml mode="pre"
   roles:
     - nexcess.server
   post_tasks:
