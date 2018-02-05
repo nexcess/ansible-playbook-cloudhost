@@ -34,4 +34,4 @@ puppet_agent_fire_and_forget: false
 
 ## Include ImageMagick in the default cloudhost install
 server_extra_packages:
-  - ImageMagick
+  - "ImageMagick"
