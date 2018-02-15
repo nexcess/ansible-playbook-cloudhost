@@ -31,3 +31,7 @@ firewall_v6_group_rules:
 
 ## Prevent puppet from running in a non-blocking fashion
 puppet_agent_fire_and_forget: false
+
+## Include ImageMagick in the default cloudhost install
+server_extra_packages:
+  - "ImageMagick"
