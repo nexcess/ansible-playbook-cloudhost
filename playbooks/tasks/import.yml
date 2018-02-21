@@ -8,6 +8,7 @@
     dest: "/tmp/{{ cloudhost_import_backup_name }}"
     force: true
     mode: 0600
+  when: mode == "post"
 
 - name: Run the InterWorx Import Process
   command: >
@@ -15,3 +16,4 @@
     --control-panel=siteworx
     --ipv4={{ cloudhost_import_ipv4 }}
     --archive=/tmp/{{ cloudhost_import_backup_name }}
+  when: mode == "post"
