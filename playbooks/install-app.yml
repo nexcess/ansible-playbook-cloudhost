@@ -1,0 +1,20 @@
+
+- name: Install An App Via Nexkit
+  hosts: cloudhost
+  become: true
+  any_errors_fatal: true
+  pre_tasks:
+    - include_vars:
+        dir="{{ inventory_dir }}/project_vars"
+      ignore_errors: true
+    - include_vars:
+        dir="{{ inventory_dir }}/region_vars"
+        files_matching="{{ nex_zone }}.*"
+      ignore_errors: true
+    - include_vars:
+        dir="{{ inventory_dir }}/host_vars"
+        files_matching="{{ inventory_hostname }}.yml"
+      ignore_errors: true
+    - include: tasks/install-app.yml mode="pre"
+  post_tasks:
+    - include: tasks/install-app.yml mode="post"
