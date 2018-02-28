@@ -1,1 +1,18 @@
 ---
+
+- set_fact:
+    siteworx_docroot: /home/{{ siteworx_user }}/{{ siteworx_domain }}/html
+
+- name: Install Magento2
+  shell: >
+    nkmagento2 install
+    -a -y
+    {{ siteworx_docroot }}
+
+- name: Set up Magento2 log rotation
+  shell: >
+    nkmagento2 repair
+    -L
+    -C redis
+    -S memcached
+    {{ siteworx_docroot }}
