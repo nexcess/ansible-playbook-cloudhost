@@ -1,0 +1,23 @@
+---
+
+- name: Check if Magento2 already installed
+  stat:
+    path: "{{ siteworx_docroot }}/app/bootstrap.php"
+  register: app_bootstrap
+
+- name: Install Magento2
+  shell: >
+    /usr/nexkit/bin/nkmagento2 install
+    -a -y
+    {{ siteworx_docroot }}
+  when: not app_bootstrap.stat.exists
+  register: app_installation
+
+- name: Set up Magento2 log rotation
+  shell: >
+    /usr/nexkit/bin/nkmagento2 repair
+    --enable-log-rotation
+    -C redis
+    -S memcached
+    {{ siteworx_docroot }}
+  when: app_installation.changed
