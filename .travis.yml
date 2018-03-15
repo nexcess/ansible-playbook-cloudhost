@@ -1,13 +1,9 @@
-sudo: require
+---
+services: docker
+
 env:
-  matrix:
-    - OS_TYPE=centos OS_VERSION=7
-
-services:
-  - docker
-
-before_install:
-  - sudo docker pull centos:centos${OS_VERSION}
+  - distro: centos7
 
 script:
-  - tests/setup.sh ${OS_VERSION}
+  - ${PWD}/spec/test.sh
+

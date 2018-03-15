@@ -4,3 +4,9 @@ roles/
 inventories
 .idea
 *.iml
+vendor/
+.bundle/
+.gitignore/
+Gemfile.lock
+.vagrant/
+playbooks/iworx-cp-install.sh
