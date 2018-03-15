@@ -9,8 +9,8 @@
   shell: >
     /usr/nexkit/bin/nkmagento2 install
     -a -y
-    --admin-user={{ app_username|quote }}
-    --admin-pass={{ app_password|quote }}
+    --admin-user={{ nex_app_username|quote }}
+    --admin-pass={{ nex_app_password|quote }}
     {{ siteworx_docroot }}
   when: not app_bootstrap.stat.exists
   register: app_installation

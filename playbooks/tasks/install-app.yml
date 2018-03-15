@@ -1,7 +1,7 @@
 ---
 
 - set_fact:
-    siteworx_docroot: /home/{{ siteworx_user }}/{{ siteworx_domain }}/html
+    siteworx_docroot: /home/{{ nex_app_unixuser }}/{{ nex_app_domain }}/html
 
 - include: install-magento-2.yml
-  when: app_type == 'magento' and app_version == '2'
+  when: nex_app_type == 'magento' and nex_app_version == '2'
