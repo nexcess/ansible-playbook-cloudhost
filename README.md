@@ -1,6 +1,8 @@
 Nexcess CloudHost Playbooks
 ===========================
 
+[![Build Status](https://travis-ci.org/nexcess/ansible-playbook-cloudhost.svg?branch=master)](https://travis-ci.org/nexcess/ansible-playbook-cloudhost)
+
 Ansible playbooks that install and manage Nexcess CloudHost servers with InterWorx
 
 Requirements
