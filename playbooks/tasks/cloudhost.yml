@@ -37,3 +37,4 @@
     name="ImageMagick6"
     enablerepo="remi"
     state="present"
+  when: mode == 'post'
