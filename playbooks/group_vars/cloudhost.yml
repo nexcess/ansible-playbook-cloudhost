@@ -19,6 +19,7 @@ iw_ssl_email: "ssladmin@nexcess.net"
 
 ## PHP
 php_single_version: false
+php_symlink_base_php: true
 
 ## Firewall - Ultimately handled by APF but set this to start
 firewall_v4_group_rules:
