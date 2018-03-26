@@ -17,6 +17,9 @@ iw_theme_git_version: "master"
 
 iw_ssl_email: "ssladmin@nexcess.net"
 
+iw_symlink_base_php: true
+iw_symlink_base_php_path: "/opt/remi/php56/root/usr/bin/php"
+
 ## PHP
 php_single_version: false
 
