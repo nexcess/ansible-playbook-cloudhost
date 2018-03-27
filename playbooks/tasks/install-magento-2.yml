@@ -8,9 +8,14 @@
 - name: Install Magento2
   shell: >
     /usr/nexkit/bin/nkmagento2 install
-    -a -y
-    --admin-user={{ nex_app_username|quote }}
-    --admin-pass={{ nex_app_password|quote }}
+    --auto-create-database
+    --assume-yes
+    --admin-user={{ nex_app_username | quote }}
+    --admin-pass={{ nex_app_password | quote }}
+    --admin-email={{ nex_app_email | quote }}
+    --admin-location={{ nex_app_admin_location }}
+    --base-url={{ nex_app_base_url }}
+    --secure-base-url={{ nex_app_secure_base_url }}
     {{ siteworx_docroot }}
   when: not app_bootstrap.stat.exists
   register: app_installation
