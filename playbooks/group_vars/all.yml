@@ -1,1 +1,4 @@
 ---
+
+server_nexcessrepo_packages:
+  - nexkit
