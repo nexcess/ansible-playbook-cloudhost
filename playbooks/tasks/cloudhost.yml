@@ -35,3 +35,10 @@
     enablerepo="remi"
     state="present"
   when: mode == 'post'
+
+- name: Install nexkit
+  yum:
+    name="nexkit"
+    enablerepo="nexcess"
+    state="present"
+  when: mode == "post"
