@@ -1,7 +1,23 @@
 ---
 
 - set_fact:
-    siteworx_docroot: /home/{{ nex_app_unixuser }}/{{ nex_app_domain }}/html
+    siteworx_docroot: "/home/{{ nex_app_unixuser }}/{{ nex_app_domain }}/html"
+
+- stat:
+    path: "{{ iw_homedir }}/etc/skel/index.html"
+    register: iw_skel_index
+
+- stat:
+    path: "{{ siteworx_docroot }}/index.html"
+    register: local_index
+
+- name: Delete The Stock index.html
+  file:
+    path: "{{ siteworx_docroot }}/index.html"
+    state: "absent"
+  when:
+    - local_index.stat.exists
+    - local_index.stat.md5 == iw_skel_index.stat.md5
 
 - include: install-magento-2.yml
-  when: nex_app_type == 'magento' and nex_app_version == '2'
+  when: nex_app_type == "magento" and nex_app_version == "2"
