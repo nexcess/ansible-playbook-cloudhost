@@ -1,0 +1,27 @@
+---
+
+# extra_port
+# max_connection_errors
+# extra_max_connections
+# table_deffenition_cache
+# open_file_limit
+# max_sort_length
+# myisam_Recovery_options
+#buffer_pool_instances
+#innodb_concurrency_tickets
+#innodb_io_capacity
+#innodb_flush_neigbors
+#innodb_flush_method
+#innodb_ft_min_token_size
+#innodb_stats_on_metadata
+mysql_key_buffer_size: "15M" 
+mysql_max_allowed_packet: "1024M" 
+mysql_read_rnd_buffer_size: "1M" 
+mysql_thread_cache_size: "75" 
+mysql_query_cache_size: "{{ (ansible_memtotal_mb * 0.02)|int|abs }}" 
+mysql_max_connections: "512" 
+mysql_tmp_table_size: "{{ [(ansible_memtotal_mb * 0.02)|int|abs,80]|max }}" 
+mysql_innodb_log_file_size: "{{ [(mysql_innodb_buffer_pool_size|int * 0.1)|int|abs,2000]|min }}" 
+mysql_innodb_log_buffer_size: "{{ (mysql_innodb_log_file_size|int / 6)|int|abs }}M"
+mysql_innodb_flush_log_at_trx_commit: "0" 
+mysql_innodb_lock_wait_timeout: "50" 
