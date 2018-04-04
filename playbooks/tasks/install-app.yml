@@ -5,12 +5,12 @@
 
 - stat:
     path: "/home/interworx/etc/skel/index.html"
-    register: iw_skel_index
+  register: iw_skel_index
   ignore_errors: yes
 
 - stat:
     path: "{{ siteworx_docroot }}/index.html"
-    register: local_index
+  register: local_index
   ignore_errors: yes
 
 - name: Delete The Stock index.html
@@ -19,7 +19,7 @@
     state: "absent"
   when:
     - local_index.stat.exists
-    - local_index.stat.md5 == iw_skel_index.stat.md5
+    - local_index.stat.sha1 == iw_skel_index.stat.sha1
   ignore_errors: yes
 
 - include: install-magento-2.yml
