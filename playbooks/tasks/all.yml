@@ -26,3 +26,11 @@
   set_fact: {"{{ item }}_frontnet_addrs":"{{ groups[item] | map('extract', hostvars, ['frontnet_addr']) | list }}"}
   with_items: "{{ groups }}"
   run_once: true
+
+# this task is placed here instead of cloudhost.yml so that CI tests pass
+- name: Install nexkit
+  yum:
+    name="nexkit"
+    enablerepo="nexcess"
+    state="present"
+  when: mode == "post"
