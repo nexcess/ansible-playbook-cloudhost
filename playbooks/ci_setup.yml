@@ -26,6 +26,6 @@
     - { role: nexcess.php, php_prefix: "php71" }
     - nexcess.interworx
     - nexcess.mariadb
-  
+    - nexcess.repo
   post_tasks:
     - include: tasks/cloudhost.yml mode="post"
