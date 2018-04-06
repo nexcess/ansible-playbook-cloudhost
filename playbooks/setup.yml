@@ -15,5 +15,6 @@
     - nexcess.interworx
     - nexcess.mariadb
     - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
+    - nexcess.repo
   post_tasks:
     - include: tasks/cloudhost.yml mode="post"

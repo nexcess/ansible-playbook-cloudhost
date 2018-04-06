@@ -35,3 +35,11 @@
     enablerepo="remi"
     state="present"
   when: mode == 'post'
+
+# this task is placed here instead of cloudhost.yml so that CI tests pass
+- name: Install nexkit
+  yum:
+    name="nexkit"
+    enablerepo="nexcess"
+    state="present"
+  when: mode == "post"
