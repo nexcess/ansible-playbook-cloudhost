@@ -24,7 +24,5 @@
   shell: >
     /usr/nexkit/bin/nkmagento2 repair
     --enable-log-rotation
-    -C redis
-    -S memcached
     {{ siteworx_docroot }}
   when: app_installation.changed
