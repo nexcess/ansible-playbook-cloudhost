@@ -7,7 +7,7 @@
 
 - name: Install Wordpress
   shell: >
-    /usr/nexkit/bin/wordpress install
+    /usr/nexkit/bin/nkwordpress install
     --auto-create-database
     --assume-yes
     --admin-username={{ nex_app_username | quote }}
