@@ -1,0 +1,18 @@
+---
+
+- name: Check if Wordpress already installed
+  stat:
+    path: "{{ siteworx_docroot }}/wp-config.php"
+  register: app_wpconfig
+
+- name: Install Wordpress
+  shell: >
+    /usr/nexkit/bin/wordpress install
+    --auto-create-database
+    --assume-yes
+    --admin-username={{ nex_app_username | quote }}
+    --admin-password={{ nex_app_password | quote }}
+    --base-url={{ nex_app_base_url }}
+    --secure-admin
+    {{ siteworx_docroot }}
+  when: not app_wpconfig.stat.exists
