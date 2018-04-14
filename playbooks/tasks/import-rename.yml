@@ -43,10 +43,18 @@
     ls {{ workdir.path }}/IWORX-META/*
   register: meta_contents
 
-- name: Replace Old/New IWORX-META File Contents
-  command: >
-    sed -i 's/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_username }}/g' {{ item }}
-    sed -i 's/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/g' {{ item }}
+- name: Replace Old/New IWORX-META File Contents (Username)
+  replace:
+    path: "{{ item }}"
+    regexp: "{{ cloudhost_import_rename_old_username }}"
+    replace: "{{ cloudhost_import_rename_new_username }}"
+  with_items: "{{ meta_contents.stdout_lines }}"
+
+- name: Replace Old/New IWORX-META File Contents (Domain)
+  replace:
+    path: "{{ item }}"
+    regexp: "{{ cloudhost_import_rename_old_domain }}"
+    replace: "{{ cloudhost_import_rename_new_domain }}"
   with_items: "{{ meta_contents.stdout_lines }}"
 
 - name: Rebuild IP Map
