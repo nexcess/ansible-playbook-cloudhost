@@ -3,15 +3,11 @@
 - name: Change MySQL User Passwords
   mysql_user:
     name: "{{ nex_app_unixuser }}_mage2"
-    password: "{{ new_mysql_pass }}"
+    password: "{{ mysql_user_pass }}"
     host_all: true
     state: "present"
 
 - name: Re-configure Magento For New Pass
-  command: >
-    echo "hi"
-
-- name: Scrub PII
   command: >
     echo "hi"
 
@@ -20,6 +16,10 @@
     echo "hi"
 
 - name: Update Admin URL
+  command: >
+    echo "hi"
+
+- name: Scrub PII
   command: >
     echo "hi"
 
