@@ -10,26 +10,29 @@
 
 - name: Set New MySQL Creds
   command: >
-    php -r
-    $env = include '{{ siteworx_docroot }}/app/etc/env.php';
-    $env['db']['connection']['default']['dbname'] = '{{ nex_app_unixuser }}_mage2';
-    $env['db']['connection']['default']['username'] = '{{ nex_app_unixuser }}_mage2';
-    $env['db']['connection']['default']['password'] = '{{ mysql_user_pass }}';
-    file_put_contents('{{ siteworx_docroot }}/app/etc/env.php', 'return ' . var_export($env, true));
+    php -r '
+      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+      $env["db"]["connection"]["default"]["dbname"] = "{{ nex_app_unixuser }}_mage2";
+      $env["db"]["connection"]["default"]["username"] = "{{ nex_app_unixuser }}_mage2";
+      $env["db"]["connection"]["default"]["password"] = "{{ mysql_user_pass }}";
+      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true));
+    '
 
 #- name: Update Encryption Key
 #  command: >
-#    php -r
-#    $env = include '{{ siteworx_docroot }}/app/etc/env.php';
-#    $env['crypt']['key'] = 'asdf1234';
-#    file_put_contents('{{ siteworx_docroot }}/app/etc/env.php', 'return ' . var_export($env, true));
+#    php -r '
+#      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+#      $env["crypt"]["key"] = "asdf1234";
+#      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true));
+#    '
 
 - name: Update Admin URL
   command: >
-    php -r
-    $env = include '{{ siteworx_docroot }}/app/etc/env.php';
-    $env['backend']['frontName'] = '{{ nex_app_admin_location }}';
-    file_put_contents('{{ siteworx_docroot }}/app/etc/env.php', 'return ' . var_export($env, true));
+    php -r '
+      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+      $env["backend"]["frontName"] = "{{ nex_app_admin_location }}";
+      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true));
+    '
 
 - name: Scrub PII
   command: >
