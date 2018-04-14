@@ -5,27 +5,45 @@
     name: "{{ nex_app_unixuser }}_mage2"
     password: "{{ mysql_user_pass }}"
     host_all: true
+    config_file: "/root/.my.cnf"
     state: "present"
 
-- name: Re-configure Magento For New Pass
+- name: Set New MySQL Creds
   command: >
-    echo "hi"
+    php -r \
+    $env = include '{{ siteworx_docroot }}/app/etc/env.php';
+    $env['db']['connection']['default']['dbname'] = '{{ nex_app_unixuser }}_mage2';
+    $env['db']['connection']['default']['username'] = '{{ nex_app_unixuser }}_mage2';
+    $env['db']['connection']['default']['password'] = '{{ mysql_user_pass }}';
+    file_put_contents('{{ siteworx_docroot }}/app/etc/env.php', 'return ' . var_export($env, true));
 
-- name: Update Encryption Key
-  command: >
-    echo "hi"
+#- name: Update Encryption Key
+#  command: >
+#    php -r \
+#    $env = include '{{ siteworx_docroot }}/app/etc/env.php';
+#    $env['crypt']['key'] = 'asdf1234';
+#    file_put_contents('{{ siteworx_docroot }}/app/etc/env.php', 'return ' . var_export($env, true));
 
 - name: Update Admin URL
   command: >
-    echo "hi"
+    php -r \
+    $env = include '{{ siteworx_docroot }}/app/etc/env.php';
+    $env['backend']['frontName'] = '{{ nex_app_admin_location }}';
+    file_put_contents('{{ siteworx_docroot }}/app/etc/env.php', 'return ' . var_export($env, true));
 
 - name: Scrub PII
   command: >
-    echo "hi"
+    echo "PII"
 
 - name: New Admin Pass
   command: >
-    echo "hi"
+    {{ siteworx_docroot }}/bin/magento \
+      admin:user:create \
+      --admin-user="{{ nex_app_username }}" \
+      --admin-password="{{ nex_app_password }}" \
+      --admin-email="{{ nex_app_email }}" \
+      --admin-firstname="{{ nex_app_user_firstname }}" \
+      --admin-lastname="{{ nex_app_user_lastname }}"
 
 - name: Update Base URLs
   command: >
