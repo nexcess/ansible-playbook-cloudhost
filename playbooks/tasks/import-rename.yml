@@ -30,13 +30,21 @@
   args:
     chdir: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}/var"
 
+- shell: >
+    ls {{ workdir.path }}/IWORX-META/*{{ cloudhost_import_rename_old_domain }}*
+  register: meta_files
+
 - name: Replace Old/New IWORX-META Files
   command: >
     mv {{ item }}
         $(echo {{ item }} | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
   args:
     chdir: "{{ workdir.path }}/IWORX-META"
-  with_fileglob: "{{ workdir.path }}/IWORX-META/*{{ cloudhost_import_rename_old_domain }}*"
+  with_items: "{{ meta_files.stdout_lines }}"
+
+- shell: >
+    ls {{ workdir.path }}/IWORX-META/*
+  register: meta_contents
 
 - name: Replace Old/New IWORX-META File Contents
   command: >
@@ -44,11 +52,11 @@
     sed -i "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/" {{ item }}
   args:
     chdir: "{{ workdir.path }}/IWORX-META"
-  with_fileglob: "{{ workdir.path }}/IWORX-META/*"
+  with_items: "{{ meta_contents.stdout_lines }}"
 
 - name: Rebuild IP Map
   command: >
-    md5sum ip-map.json | awk \'{print $1}\' > ip-map.json.md5
+    md5sum ip-map.json | awk '{print $1}' > ip-map.json.md5
   args:
     chdir: "{{ workdir.path }}/IWORX-META"
 
