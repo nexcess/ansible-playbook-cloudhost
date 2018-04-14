@@ -1,0 +1,65 @@
+---
+
+- name: Create a Work Directory if Renaming
+  tempfile:
+    state: "directory"
+    suffix: "iworx-backup-rename"
+  register: workdir
+
+- name: Untar Backup
+  unarchive:
+    dest: "{{ workdir.path }}"
+    src: "{{ cloudhost_import_backup_local_filepath }}"
+
+- name: Rename Content Dir
+  command: >
+    if [ -d {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} ]; then
+      mv {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} \
+        {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_domain }}
+    fi
+
+- name: Rename Var Dir
+  command: >
+    mv {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_old_domain }} \
+      {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_new_domain }}
+
+- name: Replace Old/New IWORX-META Files
+  command: >
+    for f in $(find -type f -name "*{{ cloudhost_import_rename_old_domain }}*"); do
+      mv $f \
+        $(echo $f | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
+    done
+  args:
+    chdir: "{{ workdir.path }}/IWORX-META"
+
+- name: Replace Old/New IWORX-META File Contents
+  command: >
+    for f in *; do
+      sed -i "s/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_username }}/" $f
+      sed -i "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/" $f
+    done
+  args:
+    chdir: "{{ workdir.path }}/IWORX-META"
+
+- name: Rebuild IP Map
+  command: >
+    md5sum ip-map.json | awk \'{print $1}\' > ip-map.json.md5
+  args:
+    chdir: "{{ workdir.path }}/IWORX-META"
+
+- name: Move Base Uniqname Dir To New
+  command: >
+    mv {{ cloudhost_import_rename_old_username }} {{ cloudhost_import_rename_new_username }}
+  args:
+    chdir: "{{ workdir.path }}"
+
+- name: Create New Import Tarball
+  command: >
+    tar -czf {{ import_tarball }} {{ cloudhost_import_rename_new_username }} IWORX-META
+  args:
+    chdir: "{{ workdir.path }}"
+
+- name: Remove Workdir
+  file:
+    path: "{{ workdir.path }}"
+    state: "absent"

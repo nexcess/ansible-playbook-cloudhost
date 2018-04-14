@@ -17,46 +17,13 @@
     - mode == "post"
     - not cloudhost_import_backup_is_local
 
-## create a space to rename things
-- name: Create a Work Directory if Renaming
-  tempfile:
-    state: "directory"
-    suffix: "iworx-backup-rename"
-  register: workdir
+## rename
+- include: import-rename.yml
   when:
     - mode == "post"
     - cloudhost_import_backup_is_rename
 
-## adjust the iworx backup to suit the new domain
-- name: Perform the Rename
-  command: >
-    pushd {{ workdir.path }}
-    mv {{ cloudhost_import_backup_local_filepath }} {{ workdir.path }}/backup.tar.gz
-    tar xzpf backup.tar.gz
-    if [ -d {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} ]; then
-      mv {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_domain }}
-    fi
-    mv {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_new_domain }}
-    pushd IWORX-META
-    for f in $(find -type f -name "*{{ cloudhost_import_rename_old_domain }}*"); do
-      mv $f $(echo $f | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
-    done
-    for f in *; do
-      sed -i "s/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_username }}/" $f
-      sed -i "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/" $f
-    done
-    md5sum ip-map.json | awk \'{print $1}\' > ip-map.json.md5
-    popd
-    mv {{ cloudhost_import_rename_old_username }} {{ cloudhost_import_rename_new_username }}
-    rm -f {{ import_tarball }}
-    tar -czf {{ import_tarball }} {{ cloudhost_import_rename_new_username }} IWORX-META
-    popd
-    rm -rf {{ workdir.path }}
-  when:
-    - mode == "post"
-    - cloudhost_import_backup_is_rename
-
-## import!
+## import
 - name: Run the InterWorx Import Process
   command: >
     ~iworx/bin/import.pex
@@ -65,7 +32,7 @@
     --archive={{ import_tarball }}
   when: mode == "post"
 
-- name: Cleanup
+- name: Remove the Import Tarball
   file:
     path: "{{ import_tarball }}"
     state: "absent"
