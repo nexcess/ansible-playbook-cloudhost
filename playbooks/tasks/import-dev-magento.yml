@@ -5,7 +5,7 @@
     name: "{{ nex_app_unixuser }}_mage2"
     password: "{{ mysql_user_pass }}"
     host_all: true
-    config_file: "/root/.my.cnf"
+    config_file: "/root/.my.ansible.cnf"
     state: "present"
 
 - name: Set New MySQL Creds
