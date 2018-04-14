@@ -12,17 +12,23 @@
     dest: "{{ workdir.path }}"
     src: "{{ cloudhost_import_backup_local_filepath }}"
 
+- name: Does the Content Dir Exist?
+  stat:
+    path: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }}"
+  register: content_dir
+
 - name: Rename Content Dir
   command: >
-    if [ -d {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} ]; then
-      mv {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} \
-        {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_domain }}
-    fi
+    mv {{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_domain }}
+  args:
+    chdir: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}"
+  when: content_dir.stat.exists
 
 - name: Rename Var Dir
   command: >
-    mv {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_old_domain }} \
-      {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_new_domain }}
+    mv {{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_domain }}
+  args:
+    chdir: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}/var"
 
 - name: Replace Old/New IWORX-META Files
   command: >
