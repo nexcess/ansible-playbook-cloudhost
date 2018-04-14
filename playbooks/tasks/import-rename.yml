@@ -8,6 +8,7 @@
 
 - name: Untar Backup
   unarchive:
+    remote_src: true
     dest: "{{ workdir.path }}"
     src: "{{ cloudhost_import_backup_local_filepath }}"
 
