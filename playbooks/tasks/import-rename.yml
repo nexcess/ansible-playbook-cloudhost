@@ -32,21 +32,19 @@
 
 - name: Replace Old/New IWORX-META Files
   command: >
-    for f in $(find -type f -name "*{{ cloudhost_import_rename_old_domain }}*"); do
-      mv $f \
-        $(echo $f | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
-    done
+    mv {{ item }}
+        $(echo {{ item }} | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
   args:
     chdir: "{{ workdir.path }}/IWORX-META"
+  with_fileglob: "{{ workdir.path }}/IWORX-META/*{{ cloudhost_import_rename_old_domain }}*"
 
 - name: Replace Old/New IWORX-META File Contents
   command: >
-    for f in *; do
-      sed -i "s/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_username }}/" $f
-      sed -i "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/" $f
-    done
+    sed -i "s/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_new_username }}/" {{ item }}
+    sed -i "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/" {{ item }}
   args:
     chdir: "{{ workdir.path }}/IWORX-META"
+  with_fileglob: "{{ workdir.path }}/IWORX-META/*"
 
 - name: Rebuild IP Map
   command: >
