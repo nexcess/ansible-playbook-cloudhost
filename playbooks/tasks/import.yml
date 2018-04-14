@@ -36,9 +36,7 @@
     if [ -d {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} ]; then
       mv {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_username }}/{{ cloudhost_import_rename_new_domain }}
     fi
-    if [ -d {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_old_domain }} ]; then
-      mv {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_username }}/var/{{ cloudhost_import_rename_new_domain }}
-    fi
+    mv {{ cloudhost_import_rename_old_username }}/var/{{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_username }}/var/{{ cloudhost_import_rename_new_domain }}
     pushd IWORX-META
     for f in $(find -type f -name "*{{ cloudhost_import_rename_old_domain }}*"); do
       mv $f $(echo $f | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
