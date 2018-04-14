@@ -59,9 +59,8 @@
 
 - name: Rebuild IP Map
   command: >
-    md5sum ip-map.json | awk '{print $1}' > ip-map.json.md5
-  args:
-    chdir: "{{ workdir.path }}/IWORX-META"
+    md5sum {{ workdir.path }}/IWORX-META/ip-map.json | awk '{print $1}' > \
+      {{ workdir.path }}/IWORX-META/ip-map.json.md5
 
 - name: Move Base Uniqname Dir To New
   command: >
