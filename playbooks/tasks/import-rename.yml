@@ -36,8 +36,7 @@
 
 - name: Replace Old/New IWORX-META Files
   command: >
-    mv {{ item }}
-        $(echo {{ item }} | sed "s/{{ cloudhost_import_rename_old_domain }}/{{ cloudhost_import_rename_new_domain }}/")
+    rename {{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_domain }} {{ item }}
   args:
     chdir: "{{ workdir.path }}/IWORX-META"
   with_items: "{{ meta_files.stdout_lines }}"
