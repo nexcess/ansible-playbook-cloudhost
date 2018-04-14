@@ -40,3 +40,5 @@ cloudhost_import_backup_checksum: ""
 cloudhost_import_backup_url: ""
 cloudhost_import_validate_certs: true
 cloudhost_import_backup_name: ""
+cloudhost_import_backup_is_local: false
+cloudhost_import_backup_rename: false
