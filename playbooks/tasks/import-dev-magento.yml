@@ -1,0 +1,40 @@
+---
+
+- name: Change MySQL User Passwords
+  mysql_user:
+    name: "{{ nex_app_unixuser }}_mage2"
+    password: "{{ new_mysql_pass }}"
+    host_all: true
+    state: "present"
+
+- name: Re-configure Magento For New Pass
+  command: >
+    echo "hi"
+
+- name: Scrub PII
+  command: >
+    echo "hi"
+
+- name: Update Encryption Key
+  command: >
+    echo "hi"
+
+- name: Update Admin URL
+  command: >
+    echo "hi"
+
+- name: New Admin Pass
+  command: >
+    echo "hi"
+
+- name: Update Base URLs
+  command: >
+    /usr/nexkit/bin/nkmagento2 repair
+    --base-url={{ nex_app_base_url }}
+    --secure-base-url={{ nex_app_secure_base_url }}
+    {{ siteworx_docroot }}
+
+- name: Clear Magento Cache
+  command: >
+    {{ siteworx_docroot }}/bin/magento cache:clean
+    {{ siteworx_docroot }}/bin/magento cache:flush

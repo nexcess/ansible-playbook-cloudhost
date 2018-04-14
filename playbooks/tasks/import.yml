@@ -36,3 +36,8 @@
   file:
     path: "{{ import_tarball }}"
     state: "absent"
+
+- include: import-dev.yml
+  when:
+    - mode == "post"
+    - cloudhost_import_target_is_dev

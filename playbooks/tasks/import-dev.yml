@@ -1,0 +1,17 @@
+---
+
+- set_fact:
+    siteworx_docroot: "/home/{{ nex_app_unixuser }}/{{ nex_app_domain }}/html"
+
+- name: Make a New MySQL User Password
+  command: >
+    mkpasswd -d 12 -c 12 -C 12 -s 0 -l 36
+  register: mysql_pass
+
+- set_fact:
+    new_mysql_pass: "{{ mysql_pass.stdout }}"
+
+- include: import-dev-magento.yml
+  when:
+    - nex_app_type == "magento"
+    - nex_app_version == "2"
