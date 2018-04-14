@@ -3,7 +3,7 @@
 ## Base Vars
 nexcess_repo_enabled: false
 server_selinux_enforcing: false
-mysql_pid_file: /var/lib/mysql/mysqld.pid
+mysql_pid_file: "/var/lib/mysql/mysqld.pid"
 
 ## IWorx Vars
 iw_ns1: "ns1.nexcess.net"
@@ -39,6 +39,7 @@ puppet_agent_fire_and_forget: false
 cloudhost_import_backup_checksum: ""
 cloudhost_import_backup_url: ""
 cloudhost_import_validate_certs: true
-cloudhost_import_backup_name: ""
+cloudhost_import_backup_remote_name: ""
+cloudhost_import_backup_local_file: ""
 cloudhost_import_backup_is_local: false
-cloudhost_import_backup_rename: false
+cloudhost_import_backup_is_rename: false
