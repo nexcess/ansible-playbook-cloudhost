@@ -2,7 +2,7 @@
 
 ## use the remote name as our local (to this server) tarball name
 - set_fact:
-    import_tarball: "/tmp/{{ cloudhost_import_backup_remote_name }}"
+    import_tarball: "/tmp/{{ cloudhost_import_backup_filename }}"
 
 ## if we're not a locally sourced backup then grab the backup file
 - name: Grab the InterWorx Backup File
@@ -31,7 +31,7 @@
 - name: Perform the Rename
   command: >
     mkdir -m 0600 {{ workdir.path }}
-    mv {{ cloudhost_import_backup_local_file }} {{ workdir.path }}/backup.tar.gz
+    mv {{ cloudhost_import_backup_local_filepath }} {{ workdir.path }}/backup.tar.gz
     pushd {{ workdir.path }}
     tar xzpf backup.tar.gz
     mv {{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_username }}/{{ cloudhost_import_rename_new_domain }}
