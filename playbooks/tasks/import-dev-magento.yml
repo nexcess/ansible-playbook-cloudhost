@@ -18,6 +18,8 @@
       file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
         || exit(1);
     '
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
 
 - name: Update Encryption Key
   command: >
@@ -27,6 +29,8 @@
       file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
         || exit(1);
     '
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
 
 - name: Update Admin URL
   command: >
@@ -36,6 +40,9 @@
       file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
         || exit(1);
     '
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
 
 - name: Scrub PII
   command: >
@@ -50,6 +57,8 @@
       --admin-email="{{ nex_app_email | quote }}"
       --admin-firstname="{{ nex_app_user_firstname | quote }}"
       --admin-lastname="{{ nex_app_user_lastname | quote }}"
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
 
 - name: Update Base URLs
   command: >
@@ -62,3 +71,5 @@
   command: |
     {{ siteworx_docroot }}/bin/magento cache:clean
     {{ siteworx_docroot }}/bin/magento cache:flush
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
