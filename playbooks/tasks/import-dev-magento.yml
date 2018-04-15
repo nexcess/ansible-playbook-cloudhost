@@ -20,6 +20,8 @@
     $env["db"]["connection"]["default"]["password"] = "{{ mysql_user_pass }}";
     file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
+  args:
+    executable: "/bin/bash"
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
@@ -30,6 +32,8 @@
     $env["crypt"]["key"] = "asdf1234";
     file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
+  args:
+    executable: "/bin/bash"
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
@@ -41,6 +45,8 @@
     $env["system"]["default"]["web"]["unsecure"]["base_url"] = "{{ nex_app_base_url }}";
     file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
+  args:
+    executable: "/bin/bash"
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
@@ -57,6 +63,8 @@
     --admin-email="{{ nex_app_email | quote }}"
     --admin-firstname="{{ nex_app_user_firstname | quote }}"
     --admin-lastname="{{ nex_app_user_lastname | quote }}"
+  args:
+    executable: "/bin/bash"
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
@@ -71,5 +79,7 @@
   shell: |
     {{ siteworx_docroot }}/bin/magento cache:clean
     {{ siteworx_docroot }}/bin/magento cache:flush
+  args:
+    executable: "/bin/bash"
   become: true
   become_user: "{{ nex_app_unixuser }}"
