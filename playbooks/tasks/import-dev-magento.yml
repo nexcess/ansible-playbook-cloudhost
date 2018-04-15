@@ -13,7 +13,7 @@
 
 - name: Set New MySQL Creds
   shell: >
-    php -r '
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
     $env = include "{{ magento_env_php }}";
     $env["db"]["connection"]["default"]["dbname"] = "{{ nex_app_unixuser }}_mage2";
     $env["db"]["connection"]["default"]["username"] = "{{ nex_app_unixuser }}_mage2";
@@ -27,7 +27,7 @@
 
 - name: Update Encryption Key
   shell: >
-    php -r '
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
     $env = include "{{ magento_env_php }}";
     $env["crypt"]["key"] = "asdf1234";
     file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
@@ -39,7 +39,7 @@
 
 - name: Update Admin URL + Base URLs
   shell: >
-    php -r '
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
     $env = include "{{ magento_env_php }}";
     $env["backend"]["frontName"] = "{{ nex_app_admin_location }}";
     $env["system"]["default"]["web"]["unsecure"]["base_url"] = "{{ nex_app_base_url }}";
@@ -56,7 +56,7 @@
 
 - name: New Admin Pass
   shell: >
-    {{ siteworx_docroot }}/bin/magento
+    . ~{{ nex_app_unixuser }}/.bashrc && {{ siteworx_docroot }}/bin/magento
     admin:user:create
     --admin-user="{{ nex_app_username | quote }}"
     --admin-password="{{ nex_app_password | quote }}"
@@ -77,8 +77,8 @@
 
 - name: Clear Magento Cache
   shell: |
-    {{ siteworx_docroot }}/bin/magento cache:clean
-    {{ siteworx_docroot }}/bin/magento cache:flush
+    . ~{{ nex_app_unixuser }}/.bashrc && {{ siteworx_docroot }}/bin/magento cache:clean
+    . ~{{ nex_app_unixuser }}/.bashrc && {{ siteworx_docroot }}/bin/magento cache:flush
   args:
     executable: "/bin/bash"
   become: true
