@@ -49,7 +49,7 @@
     echo "PII"
 
 - name: New Admin Pass
-  command: >
+  shell: >
     {{ siteworx_docroot }}/bin/magento
       admin:user:create
       --admin-user="{{ nex_app_username | quote }}"
@@ -68,7 +68,7 @@
 #      {{ siteworx_docroot }}
 
 - name: Clear Magento Cache
-  command: |
+  shell: |
     {{ siteworx_docroot }}/bin/magento cache:clean
     {{ siteworx_docroot }}/bin/magento cache:flush
   become: true
