@@ -68,12 +68,12 @@
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
-#- name: Update Base URLs
-#  command: >
-#    /usr/nexkit/bin/nkmagento2 repair
-#      --base-url={{ nex_app_base_url }}
-#      --secure-base-url={{ nex_app_secure_base_url }}
-#      {{ siteworx_docroot }}
+- name: Update Base URLs (This May Be Redundant)
+  command: >
+    /usr/nexkit/bin/nkmagento2 repair
+      --base-url={{ nex_app_base_url }}
+      --secure-base-url={{ nex_app_secure_base_url }}
+      {{ siteworx_docroot }}
 
 - name: Clear Magento Cache
   shell: |
