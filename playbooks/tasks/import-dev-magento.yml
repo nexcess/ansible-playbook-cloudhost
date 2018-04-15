@@ -50,10 +50,12 @@
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
+## ignore errors until nexkit release
 - name: Scrub PII
   command: >
     /usr/nexkit/bin/nkmagento2 repair
       --scrub-pii {{ siteworx_docroot }}
+  ignore_errors: true
 
 - name: New Admin Pass
   shell: >
