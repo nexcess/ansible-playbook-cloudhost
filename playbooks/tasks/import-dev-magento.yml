@@ -15,23 +15,26 @@
       $env["db"]["connection"]["default"]["dbname"] = "{{ nex_app_unixuser }}_mage2";
       $env["db"]["connection"]["default"]["username"] = "{{ nex_app_unixuser }}_mage2";
       $env["db"]["connection"]["default"]["password"] = "{{ mysql_user_pass }}";
-      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true));
+      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
+        || exit(1);
     '
 
-#- name: Update Encryption Key
-#  command: >
-#    php -r '
-#      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
-#      $env["crypt"]["key"] = "asdf1234";
-#      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true));
-#    '
+- name: Update Encryption Key
+  command: >
+    php -r '
+      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+      $env["crypt"]["key"] = "asdf1234";
+      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
+        || exit(1);
+    '
 
 - name: Update Admin URL
   command: >
     php -r '
       $env = include "{{ siteworx_docroot }}/app/etc/env.php";
       $env["backend"]["frontName"] = "{{ nex_app_admin_location }}";
-      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true));
+      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
+        || exit(1);
     '
 
 - name: Scrub PII
@@ -40,22 +43,22 @@
 
 - name: New Admin Pass
   command: >
-    {{ siteworx_docroot }}/bin/magento \
-      admin:user:create \
-      --admin-user="{{ nex_app_username }}" \
-      --admin-password="{{ nex_app_password }}" \
-      --admin-email="{{ nex_app_email }}" \
-      --admin-firstname="{{ nex_app_user_firstname }}" \
-      --admin-lastname="{{ nex_app_user_lastname }}"
+    {{ siteworx_docroot }}/bin/magento
+      admin:user:create
+      --admin-user="{{ nex_app_username | quote }}"
+      --admin-password="{{ nex_app_password | quote }}"
+      --admin-email="{{ nex_app_email | quote }}"
+      --admin-firstname="{{ nex_app_user_firstname | quote }}"
+      --admin-lastname="{{ nex_app_user_lastname | quote }}"
 
 - name: Update Base URLs
   command: >
     /usr/nexkit/bin/nkmagento2 repair
-    --base-url={{ nex_app_base_url }}
-    --secure-base-url={{ nex_app_secure_base_url }}
-    {{ siteworx_docroot }}
+      --base-url={{ nex_app_base_url }}
+      --secure-base-url={{ nex_app_secure_base_url }}
+      {{ siteworx_docroot }}
 
 - name: Clear Magento Cache
-  command: >
+  command: |
     {{ siteworx_docroot }}/bin/magento cache:clean
     {{ siteworx_docroot }}/bin/magento cache:flush
