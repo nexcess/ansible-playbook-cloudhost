@@ -52,7 +52,8 @@
 
 - name: Scrub PII
   command: >
-    echo "PII"
+    /usr/nexkit/bin/nkmagento2 repair
+      --scrub-pii {{ siteworx_docroot }}
 
 - name: New Admin Pass
   shell: >
