@@ -1,5 +1,8 @@
 ---
 
+- set_fact:
+    magento_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
+
 - name: Change MySQL User Passwords
   mysql_user:
     name: "{{ nex_app_unixuser }}_mage2"
@@ -11,12 +14,11 @@
 - name: Set New MySQL Creds
   command: >
     php -r '
-      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+      $env = include "{{ magento_env_php }}";
       $env["db"]["connection"]["default"]["dbname"] = "{{ nex_app_unixuser }}_mage2";
       $env["db"]["connection"]["default"]["username"] = "{{ nex_app_unixuser }}_mage2";
       $env["db"]["connection"]["default"]["password"] = "{{ mysql_user_pass }}";
-      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
-        || exit(1);
+      file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true)) || exit(1);
     '
   become: true
   become_user: "{{ nex_app_unixuser }}"
@@ -24,10 +26,9 @@
 - name: Update Encryption Key
   command: >
     php -r '
-      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+      $env = include "{{ magento_env_php }}";
       $env["crypt"]["key"] = "asdf1234";
-      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
-        || exit(1);
+      file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true)) || exit(1);
     '
   become: true
   become_user: "{{ nex_app_unixuser }}"
@@ -35,14 +36,12 @@
 - name: Update Admin URL
   command: >
     php -r '
-      $env = include "{{ siteworx_docroot }}/app/etc/env.php";
+      $env = include "{{ magento_env_php }}";
       $env["backend"]["frontName"] = "{{ nex_app_admin_location }}";
-      file_put_contents("{{ siteworx_docroot }}/app/etc/env.php", "return " . var_export($env, true))
-        || exit(1);
+      file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true)) || exit(1);
     '
   become: true
   become_user: "{{ nex_app_unixuser }}"
-
 
 - name: Scrub PII
   command: >
