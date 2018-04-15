@@ -32,11 +32,18 @@
     --archive={{ import_tarball }}
   when: mode == "post"
 
+## enable shell user until iworx bug is fixed
+- name: Enable Account SSH User
+  command: >
+    nodeworx -unv -c Shell -a enable --users={{ nex_app_unixuser }}
+  when: mode == "post"
+
 ## cleanup
 - name: Remove the Import Tarball
   file:
     path: "{{ import_tarball }}"
     state: "absent"
+  when: mode == "post"
 
 ## dev-ize
 - include: import-dev.yml

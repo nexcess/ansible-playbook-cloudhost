@@ -33,11 +33,12 @@
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
-- name: Update Admin URL
+- name: Update Admin URL + Base URLs
   command: >
     php -r '
       $env = include "{{ magento_env_php }}";
       $env["backend"]["frontName"] = "{{ nex_app_admin_location }}";
+      $env["system"]["default"]["web"]["unsecure"]["base_url"] = "{{ nex_app_base_url }}";
       file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
   become: true
@@ -59,12 +60,12 @@
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
-- name: Update Base URLs
-  command: >
-    /usr/nexkit/bin/nkmagento2 repair
-      --base-url={{ nex_app_base_url }}
-      --secure-base-url={{ nex_app_secure_base_url }}
-      {{ siteworx_docroot }}
+#- name: Update Base URLs
+#  command: >
+#    /usr/nexkit/bin/nkmagento2 repair
+#      --base-url={{ nex_app_base_url }}
+#      --secure-base-url={{ nex_app_secure_base_url }}
+#      {{ siteworx_docroot }}
 
 - name: Clear Magento Cache
   command: |
