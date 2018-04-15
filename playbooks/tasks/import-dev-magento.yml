@@ -48,8 +48,26 @@
   command: >
     echo "PII"
 
+- file:
+    path: /tmp/test
+    state: touch
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- file:
+    path: /tmp/test2
+    state: touch
+  become_user: "{{ nex_app_unixuser }}"
+  become: true
+
+- file:
+    path: /tmp/test3
+    state: touch
+  become_user: "{{ nex_app_unixuser }}"
+  become: yes
+
 - name: New Admin Pass
-  shell: >
+  command: >
     {{ siteworx_docroot }}/bin/magento
       admin:user:create
       --admin-user="{{ nex_app_username | quote }}"
