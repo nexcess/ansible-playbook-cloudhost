@@ -93,8 +93,8 @@
 
 - name: Clear Magento Cache
   shell: |
-    . ~{{ nex_app_unixuser }}/.bashrc && {{ siteworx_docroot }}/bin/magento cache:clean
-    . ~{{ nex_app_unixuser }}/.bashrc && {{ siteworx_docroot }}/bin/magento cache:flush
+    . ~{{ nex_app_unixuser }}/.bashrc && php {{ siteworx_docroot }}/bin/magento cache:clean
+    . ~{{ nex_app_unixuser }}/.bashrc && php {{ siteworx_docroot }}/bin/magento cache:flush
   args:
     executable: "/bin/bash"
   become: true
