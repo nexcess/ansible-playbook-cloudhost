@@ -70,7 +70,7 @@
 
 - name: New Admin Pass
   shell: >
-    . ~{{ nex_app_unixuser }}/.bashrc && {{ siteworx_docroot }}/bin/magento
+    . ~{{ nex_app_unixuser }}/.bashrc && php {{ siteworx_docroot }}/bin/magento
     admin:user:create
     --admin-user="{{ nex_app_username | quote }}"
     --admin-password="{{ nex_app_password | quote }}"
