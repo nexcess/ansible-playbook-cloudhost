@@ -56,6 +56,7 @@
     /usr/nexkit/bin/nkmagento2 repair
       --scrub-pii {{ siteworx_docroot }}
   ignore_errors: true
+  when: cloudhost_import_scrub_pii
 
 - name: New Admin Pass
   shell: >

@@ -44,3 +44,4 @@ cloudhost_import_backup_local_filepath: ""
 cloudhost_import_backup_is_local: false
 cloudhost_import_backup_is_rename: false
 cloudhost_import_target_is_dev: false
+cloudhost_import_scrub_pii: true
