@@ -15,3 +15,7 @@
   when:
     - nex_app_type == "magento"
     - nex_app_version == "2"
+
+- include: import-dev-wordpress.yml
+  when:
+    - nex_app_type == "wordpress"
