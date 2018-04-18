@@ -1,29 +1,41 @@
 ---
 
+- set_fact:
+    mage2_old_dbname: "{{ cloudhost_import_rename_old_username }}_mage2"
+
+- set_fact:
+    mage2_new_dbname: "{{ nex_app_unixuser }}_mage2"
+
+- set_fact:
+    mage2_old_dbuser: "{{ cloudhost_import_rename_old_username }}_mage2"
+
+- set_fact:
+    mage2_new_dbuser: "{{ nex_app_unixuser }}_mage2"
+
 - name: Change MySQL User Passwords
   mysql_user:
-    name: "{{ nex_app_unixuser }}_mage2"
+    name: "{{ mage2_new_dbname }}"
     password: "{{ mysql_user_pass }}"
     host_all: true
     config_file: "/root/.my.ansible.cnf"
     state: "present"
 
 - set_fact:
-    magento_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
+    mage2_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
 
 - name: See if env.php Exists
   stat:
-    path: "{{ magento_env_php }}"
+    path: "{{ mage2_env_php }}"
   register: env_php_stat
 
 - name: Set New MySQL Creds
   shell: >
     . ~{{ nex_app_unixuser }}/.bashrc && php -r '
-    $env = include "{{ magento_env_php }}";
-    $env["db"]["connection"]["default"]["dbname"] = "{{ nex_app_unixuser }}_mage2";
-    $env["db"]["connection"]["default"]["username"] = "{{ nex_app_unixuser }}_mage2";
+    $env = include "{{ mage2_env_php }}";
+    $env["db"]["connection"]["default"]["dbname"] = "{{ mage2_new_dbname }}";
+    $env["db"]["connection"]["default"]["username"] = "{{ mage2_new_dbuser }}";
     $env["db"]["connection"]["default"]["password"] = "{{ mysql_user_pass }}";
-    file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
+    file_put_contents("{{ mage2_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
   args:
     executable: "/bin/bash"
@@ -34,9 +46,9 @@
 - name: Update Encryption Key
   shell: >
     . ~{{ nex_app_unixuser }}/.bashrc && php -r '
-    $env = include "{{ magento_env_php }}";
+    $env = include "{{ mage2_env_php }}";
     $env["crypt"]["key"] = "asdf1234";
-    file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
+    file_put_contents("{{ mage2_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
   args:
     executable: "/bin/bash"
@@ -47,10 +59,10 @@
 - name: Update Admin URL + Base URLs
   shell: >
     . ~{{ nex_app_unixuser }}/.bashrc && php -r '
-    $env = include "{{ magento_env_php }}";
+    $env = include "{{ mage2_env_php }}";
     $env["backend"]["frontName"] = "{{ nex_app_admin_location }}";
     $env["system"]["default"]["web"]["unsecure"]["base_url"] = "{{ nex_app_base_url }}";
-    file_put_contents("{{ magento_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
+    file_put_contents("{{ mage2_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
     '
   args:
     executable: "/bin/bash"
@@ -58,12 +70,10 @@
   become_user: "{{ nex_app_unixuser }}"
   when: env_php_stat.stat.exists
 
-## ignore errors until nexkit release
 - name: Scrub PII
   command: >
     /usr/nexkit/bin/nkmagento2 repair
       --scrub-pii {{ siteworx_docroot }}
-  ignore_errors: true
   when:
     - env_php_stat.stat.exists
     - cloudhost_import_scrub_pii
@@ -100,3 +110,18 @@
   become: true
   become_user: "{{ nex_app_unixuser }}"
   when: env_php_stat.stat.exists
+
+- name: Scrub Other Files for Old DB Refs (DB Name)
+  command: >
+    find {{ siteworx_docroot }} -type f -name "*.php" |
+    xargs sed -i 's/{{ mage2_old_dbname }}/{{ mage2_new_dbname }}/g'
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- name: Scrub Other Files for Old DB Refs (DB User)
+  command: >
+    find {{ siteworx_docroot }} -type f -name "*.php" |
+    xargs sed -i 's/{{ mage2_old_dbuser }}/{{ mage2_new_dbuser }}/g'
+  when: (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
