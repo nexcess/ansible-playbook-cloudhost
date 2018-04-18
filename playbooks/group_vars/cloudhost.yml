@@ -45,3 +45,8 @@ cloudhost_import_backup_is_local: false
 cloudhost_import_backup_is_rename: false
 cloudhost_import_target_is_dev: false
 cloudhost_import_scrub_pii: true
+cloudhost_import_ipv4: ""
+cloudhost_import_rename_old_domain: ""
+cloudhost_import_rename_old_username: ""
+cloudhost_import_rename_new_domain: ""
+cloudhost_import_rename_new_username: ""
