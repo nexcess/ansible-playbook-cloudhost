@@ -22,14 +22,14 @@
 
 - name: Scrub Any Other Lingering Old/New Username References
   command: >
-    find {{ siteworx_docroot }} -type f -name '*.php' -o '*.xml' -o '*.json' |
+    find {{ siteworx_docroot }} -type f -name ''*.php'' -o ''*.xml'' -o ''*.json'' |
     xargs sed -i 's/{{ cloudhost_import_rename_old_username }}/{{ nex_app_unixuser }}/g'
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
 - name: Scrub Any Other Lingering Old/New Domain References
   command: >
-    find {{ siteworx_docroot }} -type f -name '*.php' -o '*.xml' -o '*.json' |
+    find {{ siteworx_docroot }} -type f -name ''*.php'' -o ''*.xml'' -o ''*.json'' |
     xargs sed -i 's/{{ cloudhost_import_rename_old_domain }}/{{ nex_app_domain }}/g'
   become: true
   become_user: "{{ nex_app_unixuser }}"
