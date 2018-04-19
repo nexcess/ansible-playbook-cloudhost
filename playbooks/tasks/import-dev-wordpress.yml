@@ -75,11 +75,10 @@
     - wp_config_php_stat.stat.exists
     - cloudhost_import_scrub_pii
 
-- name: Update Base URLs (This May Be Redundant)
+- name: Update Base URLs
   command: >
     /usr/nexkit/bin/nkwordpress repair
-      --base-url={{ nex_app_base_url }}
-      --secure-base-url={{ nex_app_secure_base_url }}
+      --set-site-url={{ nex_app_base_url }}
       {{ siteworx_docroot }}
   when: wp_config_php_stat.stat.exists
 
