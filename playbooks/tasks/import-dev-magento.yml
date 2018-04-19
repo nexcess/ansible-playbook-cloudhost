@@ -112,16 +112,16 @@
   when: env_php_stat.stat.exists
 
 - name: Scrub Other Files for Old DB Refs (DB Name)
-  command: >
+  shell: >
     find {{ siteworx_docroot }} -type f -name \'*.php\' |
-    xargs sed -i 's/{{ mage2_old_dbname }}/{{ mage2_new_dbname }}/g'
+    xargs sed -i \'s/{{ mage2_old_dbname }}/{{ mage2_new_dbname }}/g\'
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
 - name: Scrub Other Files for Old DB Refs (DB User)
-  command: >
+  shell: >
     find {{ siteworx_docroot }} -type f -name \'*.php\' |
-    xargs sed -i 's/{{ mage2_old_dbuser }}/{{ mage2_new_dbuser }}/g'
+    xargs sed -i \'s/{{ mage2_old_dbuser }}/{{ mage2_new_dbuser }}/g\'
   when: (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
   become: true
   become_user: "{{ nex_app_unixuser }}"
