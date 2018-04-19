@@ -77,7 +77,7 @@
 
 - name: Update Base URLs (This May Be Redundant)
   command: >
-    /usr/nexkit/bin/wordpress repair
+    /usr/nexkit/bin/nkwordpress repair
       --base-url={{ nex_app_base_url }}
       --secure-base-url={{ nex_app_secure_base_url }}
       {{ siteworx_docroot }}
