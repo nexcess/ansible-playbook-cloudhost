@@ -1,0 +1,88 @@
+---
+
+- name: Create a Work Directory if Renaming
+  tempfile:
+    state: "directory"
+    suffix: "iworx-backup-rename"
+  register: workdir
+
+- name: Untar Backup
+  unarchive:
+    remote_src: true
+    dest: "{{ workdir.path }}"
+    src: "{{ cloudhost_import_backup_local_filepath }}"
+
+- name: Does the Content Dir Exist?
+  stat:
+    path: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}/{{ cloudhost_import_rename_old_domain }}"
+  register: content_dir
+
+- name: Rename Content Dir
+  command: >
+    mv {{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_domain }}
+  args:
+    chdir: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}"
+  when: content_dir.stat.exists
+
+- name: Rename Var Dir
+  command: >
+    mv {{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_domain }}
+  args:
+    chdir: "{{ workdir.path }}/{{ cloudhost_import_rename_old_username }}/var"
+
+- shell: >
+    ls {{ workdir.path }}/IWORX-META/*{{ cloudhost_import_rename_old_domain }}*
+  register: meta_files
+
+- name: Replace Old/New IWORX-META Files
+  command: >
+    rename {{ cloudhost_import_rename_old_domain }} {{ cloudhost_import_rename_new_domain }} {{ item }}
+  with_items: "{{ meta_files.stdout_lines }}"
+
+- shell: >
+    ls {{ workdir.path }}/IWORX-META/*
+  register: meta_contents
+
+- name: Replace Old/New IWORX-META File Contents (Username)
+  replace:
+    path: "{{ item }}"
+    regexp: "{{ cloudhost_import_rename_old_username }}"
+    replace: "{{ cloudhost_import_rename_new_username }}"
+  with_items: "{{ meta_contents.stdout_lines }}"
+
+- name: Replace Old/New IWORX-META File Contents (Domain)
+  replace:
+    path: "{{ item }}"
+    regexp: "{{ cloudhost_import_rename_old_domain }}"
+    replace: "{{ cloudhost_import_rename_new_domain }}"
+  with_items: "{{ meta_contents.stdout_lines }}"
+
+- name: Get the IP Map MD5
+  stat:
+    path: "{{ workdir.path }}/IWORX-META/ip-map.json"
+  register: ip_map
+
+- name: Create the New IP Map MD5 File
+  copy:
+    dest: "{{ workdir.path }}/IWORX-META/ip-map.json.md5"
+    content: "{{ ip_map.stat.md5 }}"
+    mode: 0600
+    owner: "iworx"
+    group: "iworx"
+
+- name: Move Base Uniqname Dir To New
+  command: >
+    mv {{ cloudhost_import_rename_old_username }} {{ cloudhost_import_rename_new_username }}
+  args:
+    chdir: "{{ workdir.path }}"
+
+- name: Create New Import Tarball
+  command: >
+    tar -czf {{ import_tarball }} {{ cloudhost_import_rename_new_username }} IWORX-META
+  args:
+    chdir: "{{ workdir.path }}"
+
+- name: Remove Workdir
+  file:
+    path: "{{ workdir.path }}"
+    state: "absent"

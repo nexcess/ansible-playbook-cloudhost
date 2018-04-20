@@ -1,19 +1,52 @@
 ---
 
+## use the remote name as our local (to this server) tarball name
+- set_fact:
+    import_tarball: "/tmp/{{ cloudhost_import_backup_filename }}"
+
+## if we're not a locally sourced backup then grab the backup file
 - name: Grab the InterWorx Backup File
   get_url:
     checksum: "{{ cloudhost_import_backup_checksum }}"
     url: "{{ cloudhost_import_backup_url }}"
     validate_certs: "{{ cloudhost_import_validate_certs }}"
-    dest: "/tmp/{{ cloudhost_import_backup_name }}"
+    dest: "{{ import_tarball }}"
     force: true
     mode: 0600
-  when: mode == "post"
+  when:
+    - mode == "post"
+    - not cloudhost_import_backup_is_local
 
+## rename
+- include: import-rename.yml
+  when:
+    - mode == "post"
+    - cloudhost_import_backup_is_rename
+
+## import
 - name: Run the InterWorx Import Process
   command: >
     ~iworx/bin/import.pex
     --control-panel=siteworx
     --ipv4={{ cloudhost_import_ipv4 }}
-    --archive=/tmp/{{ cloudhost_import_backup_name }}
+    --archive={{ import_tarball }}
   when: mode == "post"
+
+## enable shell user until iworx bug is fixed
+- name: Enable Account SSH User
+  command: >
+    nodeworx -unv -c Shell -a enable --users={{ nex_app_unixuser }}
+  when: mode == "post"
+
+## cleanup
+- name: Remove the Import Tarball
+  file:
+    path: "{{ import_tarball }}"
+    state: "absent"
+  when: mode == "post"
+
+## dev-ize
+- include: import-dev.yml
+  when:
+    - mode == "post"
+    - cloudhost_import_target_is_dev

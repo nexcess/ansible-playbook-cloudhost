@@ -22,8 +22,8 @@
     - local_index.stat.checksum == iw_skel_index.stat.checksum
   ignore_errors: yes
 
-- include: install-magento-2.yml
+- include: install-app-magento-2.yml
   when: nex_app_type == "magento" and nex_app_version == "2"
 
-- include: install-wordpress.yml
+- include: install-app-wordpress.yml
   when: nex_app_type == "wordpress"

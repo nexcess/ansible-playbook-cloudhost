@@ -1,0 +1,35 @@
+---
+
+- set_fact:
+    siteworx_docroot: "/home/{{ nex_app_unixuser }}/{{ nex_app_domain }}/html"
+
+- name: Make a New MySQL User Password
+  command: >
+    mkpasswd -d 12 -c 12 -C 12 -s 0 -l 36
+  register: mysql_mkpasswd
+
+- set_fact:
+    mysql_user_pass: "{{ mysql_mkpasswd.stdout }}"
+
+- include: import-dev-magento.yml
+  when:
+    - nex_app_type == "magento"
+    - nex_app_version == "2"
+
+- include: import-dev-wordpress.yml
+  when:
+    - nex_app_type == "wordpress"
+
+- name: Scrub Any Other Lingering Old/New Username References
+  shell: >
+    find {{ siteworx_docroot }} -type f -name '*.php' -o -name '*.xml' -o -name '*.json' |
+    xargs -r sed -i 's/{{ cloudhost_import_rename_old_username | quote }}/{{ nex_app_unixuser | quote }}/g'
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- name: Scrub Any Other Lingering Old/New Domain References
+  shell: >
+    find {{ siteworx_docroot }} -type f -name '*.php' -o -name '*.xml' -o -name '*.json' |
+    xargs -r sed -i 's/{{ cloudhost_import_rename_old_domain | quote }}/{{ nex_app_domain | quote }}/g'
+  become: true
+  become_user: "{{ nex_app_unixuser }}"

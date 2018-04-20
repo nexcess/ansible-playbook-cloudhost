@@ -1,0 +1,100 @@
+---
+
+- set_fact:
+    wp_old_dbname: "{{ cloudhost_import_rename_old_username }}_wp"
+
+- set_fact:
+    wp_new_dbname: "{{ nex_app_unixuser }}_wp"
+
+- set_fact:
+    wp_old_dbuser: "{{ cloudhost_import_rename_old_username }}_wp"
+
+- set_fact:
+    wp_new_dbuser: "{{ nex_app_unixuser }}_wp"
+
+- set_fact:
+    wp_config_php: "{{ siteworx_docroot }}/wp-config.php"
+
+- name: Change MySQL User Passwords
+  mysql_user:
+    name: "{{ wp_new_dbname }}"
+    password: "{{ mysql_user_pass }}"
+    host_all: true
+    config_file: "/root/.my.ansible.cnf"
+    state: "present"
+
+- name: See if wp-config.php Exists
+  stat:
+    path: "{{ wp_config_php }}"
+  register: wp_config_php_stat
+
+- name: Update DB Name
+  lineinfile:
+    path: "{{ wp_config_php }}"
+    regexp: "DB_NAME.*{{ wp_old_dbname }}"
+    line: "define('DB_NAME','{{ wp_new_dbname }}');"
+  when:
+    - wp_config_php_stat.stat.exists
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- name: Update DB Username
+  lineinfile:
+    path: "{{ wp_config_php }}"
+    regexp: "DB_USER.*{{ wp_old_dbuser }}"
+    line: "define('DB_USER','{{ wp_new_dbuser }}');"
+  when:
+    - wp_config_php_stat.stat.exists
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- name: Update DB Password
+  lineinfile:
+    path: "{{ wp_config_php }}"
+    regexp: "DB_PASSWORD"
+    line: "define('DB_PASSWORD','{{ mysql_user_pass }}');"
+  when:
+    - wp_config_php_stat.stat.exists
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- name: New Admin Pass
+  command: >
+    /usr/nexkit/bin/nkwordpress repair
+    --reset-password
+    {{ nex_app_username | quote }}:{{ nex_app_password | quote }}
+    {{ siteworx_docroot }}
+  when: wp_config_php_stat.stat.exists
+
+- name: Scrub PII
+  command: >
+    /usr/nexkit/bin/nkwordpress repair
+    --scrub-pii
+    {{ siteworx_docroot }}
+  when:
+    - wp_config_php_stat.stat.exists
+    - cloudhost_import_scrub_pii
+
+- name: Update Base URLs
+  command: >
+    /usr/nexkit/bin/nkwordpress repair
+      --set-site-url={{ nex_app_base_url }}
+      {{ siteworx_docroot }}
+  when: wp_config_php_stat.stat.exists
+
+- name: Scrub Other Files for Old DB Refs (DB Name)
+  shell: >
+    find {{ siteworx_docroot }} -type f -name '*.php' |
+    xargs -r sed -i 's/{{ wp_old_dbname }}/{{ wp_new_dbname }}/g'
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+- name: Scrub Other Files for Old DB Refs (DB User)
+  shell: >
+    find {{ siteworx_docroot }} -type f -name '*.php' |
+    xargs -r sed -i 's/{{ wp_old_dbuser }}/{{ wp_new_dbuser }}/g'
+  when: (wp_old_dbname != wp_old_dbuser) or (wp_new_dbname != wp_new_dbuser)
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+
+## clear caches
