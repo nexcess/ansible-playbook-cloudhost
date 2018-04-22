@@ -26,3 +26,11 @@
     --enable-log-rotation
     {{ siteworx_docroot }}
   when: app_installation.changed
+
+- name: Set Magento2 Cache Storage to Redis
+  shell: >
+    /usr/nexkit/bin/nkmagento2 repair
+    --set-cache-method=redis
+    --socket-path=unix:/var/run/redis-multi-{{ nex_app_username }}.redis/redis.sock
+    {{ siteworx_docroot }}
+  when: app_installation.changed
