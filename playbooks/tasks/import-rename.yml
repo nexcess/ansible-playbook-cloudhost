@@ -57,6 +57,13 @@
     replace: "{{ cloudhost_import_rename_new_domain }}"
   with_items: "{{ meta_contents.stdout_lines }}"
 
+- name: Replace Old/New IWORX-META File Contents (Temp Domain)
+  replace:
+    path: "{{ item }}"
+    regexp: "{{ cloudhost_import_rename_old_tmp_domain }}"
+    replace: "{{ cloudhost_import_rename_new_tmp_domain }}"
+  with_items: "{{ meta_contents.stdout_lines }}"
+
 - name: Get the IP Map MD5
   stat:
     path: "{{ workdir.path }}/IWORX-META/ip-map.json"
