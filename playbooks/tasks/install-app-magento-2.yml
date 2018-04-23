@@ -31,6 +31,6 @@
   shell: >
     /usr/nexkit/bin/nkmagento2 repair
     --set-cache-method=redis
-    --socket-path=/var/run/redis-multi-{{ nex_app_username | quote }}.redis/redis.sock
+    --socket-path=/var/run/redis-multi-{{ nex_app_unixuser | quote }}.redis/redis.sock
     {{ siteworx_docroot }}
   when: app_installation.changed
