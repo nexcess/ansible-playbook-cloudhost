@@ -22,6 +22,7 @@
     host_all: true
     config_file: "/root/.my.ansible.cnf"
     state: "present"
+  ignore_errors: true
 
 - name: See if wp-config.php Exists
   stat:
