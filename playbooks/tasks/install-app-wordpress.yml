@@ -22,6 +22,6 @@
   shell: >
     /usr/nexkit/bin/nkwordpress w3tc
     --set-cache-method=redis
-    --socket-path=unix:/var/run/redis-multi-{{ nex_app_username }}.redis/redis.sock
+    --socket-path=unix:/var/run/redis-multi-{{ nex_app_username | quote }}.redis/redis.sock
     {{ siteworx_docroot }}
   when: app_installation.changed
