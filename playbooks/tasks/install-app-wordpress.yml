@@ -18,10 +18,10 @@
   when: not app_wpconfig.stat.exists
   register: app_installation
 
- - name: Set up Wordpress w3tc Using Redis
-   shell: >
-     /usr/nexkit/bin/nkwordpress w3tc
-     --set-cache-method=redis
-     --socket-path=/var/run/redis-multi-{{ nex_app_username }}.redis/redis.sock
-     {{ siteworx_docroot }}
-   when: app_installation.changed
+- name: Set up Wordpress w3tc Using Redis
+  shell: >
+    /usr/nexkit/bin/nkwordpress w3tc
+    --set-cache-method=redis
+    --socket-path=/var/run/redis-multi-{{ nex_app_username }}.redis/redis.sock
+    {{ siteworx_docroot }}
+  when: app_installation.changed
