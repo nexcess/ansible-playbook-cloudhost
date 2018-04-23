@@ -16,3 +16,12 @@
     --secure-admin
     {{ siteworx_docroot }}
   when: not app_wpconfig.stat.exists
+  register: app_installation
+
+- name: Set up Wordpress w3tc Using Redis
+  shell: >
+    /usr/nexkit/bin/nkwordpress w3tc
+    --set-cache-method=redis
+    --socket-path=unix:/var/run/redis-multi-{{ nex_app_unixuser }}.redis/redis.sock
+    {{ siteworx_docroot }}
+  when: app_installation.changed
