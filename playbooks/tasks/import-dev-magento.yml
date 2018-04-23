@@ -19,6 +19,7 @@
     host_all: true
     config_file: "/root/.my.ansible.cnf"
     state: "present"
+  ignore_errors: true
 
 - set_fact:
     mage2_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
