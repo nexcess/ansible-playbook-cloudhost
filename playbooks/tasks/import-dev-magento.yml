@@ -79,6 +79,25 @@
     - env_php_stat.stat.exists
     - cloudhost_import_scrub_pii
 
+- name: Reset the Redis Socket
+  shell: >
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
+    $env = include "{{ mage2_env_php }}";
+    if (
+      isset($env["cache"]["frontend"]["default"]["backend"]) &&
+      $env["cache"]["frontend"]["default"]["backend"] == "Cm_Cache_Backend_Redis"
+    ) {
+      $env["cache"]["frontend"]["default"]["backend_options"]["server"] = "/var/run/redis-multi-{{ nex_app_unixuser }}.redis/redis.sock";
+      file_put_contents("{{ mage2_env_php }}", "<?php\nreturn " . var_export($env, true) . ";") || exit(1);
+    }
+    '
+  args:
+    executable: "/bin/bash"
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  ignore_errors: true
+
 - name: New Admin Pass
   shell: >
     . ~{{ nex_app_unixuser }}/.bashrc && php {{ siteworx_docroot }}/bin/magento
