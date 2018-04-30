@@ -34,6 +34,8 @@ firewall_v6_group_rules:
 
 ## Prevent puppet from running in a non-blocking fashion
 puppet_agent_fire_and_forget: false
+## Update Puppet compile master for Cloudhosts
+puppet_server: "yy-node62188.us-midwest-1.nexcess.net"
 
 ## InterWorx import vars
 cloudhost_import_backup_checksum: ""
