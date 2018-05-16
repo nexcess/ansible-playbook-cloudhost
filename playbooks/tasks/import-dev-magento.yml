@@ -44,11 +44,12 @@
 
 - name: Change MySQL User Passwords
   mysql_user:
-    name: "{{ mage2_new_dbname }}"
+    name: "{{ mage2_new_dbuser }}"
     password: "{{ mysql_user_pass }}"
     host_all: true
     config_file: "/root/.my.ansible.cnf"
     state: "present"
+  when: mage2_new_dbuser is defined
   ignore_errors: true
 
 - name: Set New MySQL Creds
