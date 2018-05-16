@@ -23,7 +23,7 @@
 
 - name: OLD DB USER
   debug:
-    var: mage2_old_dbuser
+    var: mage2_old_dbuser.stdout
   when: env_php_stat.stat.exists
 
 - name: Get the Old MySQL DB Name
@@ -41,11 +41,11 @@
 
 - name: OLD DB NAME
   debug:
-    var: mage2_old_dbname
+    var: mage2_old_dbname.stdout
   when: env_php_stat.stat.exists
 
 - set_fact:
-    mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser | regex_replace('[a-z0-9]+_', '') }}"
+    mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser.stdout | regex_replace('[a-z0-9]+_', '') }}"
   when: env_php_stat.stat.exists
 
 - name: NEW DB USER
@@ -54,7 +54,7 @@
   when: env_php_stat.stat.exists
 
 - set_fact:
-    mage2_new_dbname: "{{ nex_app_unixuser }}_{{ mage2_old_dbname | regex_replace('[a-z0-9]+_', '') }}"
+    mage2_new_dbname: "{{ nex_app_unixuser }}_{{ mage2_old_dbname.stdout | regex_replace('[a-z0-9]+_', '') }}"
   when: env_php_stat.stat.exists
 
 - name: NEW DB NAME
