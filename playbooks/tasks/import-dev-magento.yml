@@ -21,6 +21,9 @@
   when: env_php_stat.stat.exists
   register: mage2_old_dbuser
 
+- name: OLD DB USER
+    var: mage2_old_dbuser
+
 - name: Get the Old MySQL DB Name
   shell: >
     . ~{{ nex_app_unixuser }}/.bashrc && php -r '
@@ -33,6 +36,9 @@
   become_user: "{{ nex_app_unixuser }}"
   when: env_php_stat.stat.exists
   register: mage2_old_dbname
+
+- name: OLD DB NAME
+    var: mage2_old_dbname
 
 - set_fact:
     mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser | regex_replace('[a-z0-9]+_', '') }}"
@@ -160,11 +166,14 @@
     xargs -r sed -i 's/{{ mage2_old_dbname | quote }}/{{ mage2_new_dbname | quote }}/g'
   become: true
   become_user: "{{ nex_app_unixuser }}"
+  when: mage2_old_dbname is defined
 
 - name: Scrub Other Files for Old DB Refs (DB User)
   shell: >
     find {{ siteworx_docroot }} -type f -name '*.php' |
     xargs -r sed -i 's/{{ mage2_old_dbuser | quote }}/{{ mage2_new_dbuser | quote }}/g'
-  when: (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
+  when:
+    - mage2_old_dbuser is defined
+    - (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
   become: true
   become_user: "{{ nex_app_unixuser }}"
