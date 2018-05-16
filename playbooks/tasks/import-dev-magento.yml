@@ -35,11 +35,11 @@
   register: mage2_old_dbname
 
 - set_fact:
-    mage2_new_dbuser: "{{ mage2_old_dbuser | regexp_replace('\w+_', '') }}"
+    mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser | regexp_replace('\w+_', '') }}"
   when: mage2_old_dbuser is defined
 
 - set_fact:
-    mage2_new_dbname: "{{ mage2_old_dbname | regexp_replace('\w+_', '') }}"
+    mage2_new_dbname: "{{ nex_app_unixuser }}_{{ mage2_old_dbname | regexp_replace('\w+_', '') }}"
   when: mage2_old_dbname is defined
 
 - name: Change MySQL User Passwords
