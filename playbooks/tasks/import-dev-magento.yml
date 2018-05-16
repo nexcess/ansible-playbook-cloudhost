@@ -1,33 +1,56 @@
 ---
 
 - set_fact:
-    mage2_old_dbname: "{{ cloudhost_import_rename_old_username }}_mage2"
-
-- set_fact:
-    mage2_new_dbname: "{{ nex_app_unixuser }}_mage2"
-
-- set_fact:
-    mage2_old_dbuser: "{{ cloudhost_import_rename_old_username }}_mage2"
-
-- set_fact:
-    mage2_new_dbuser: "{{ nex_app_unixuser }}_mage2"
-
-- name: Change MySQL User Passwords
-  mysql_user:
-    name: "{{ mage2_new_dbname }}"
-    password: "{{ mysql_user_pass }}"
-    host_all: true
-    config_file: "/root/.my.ansible.cnf"
-    state: "present"
-  ignore_errors: true
-
-- set_fact:
     mage2_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
 
 - name: See if env.php Exists
   stat:
     path: "{{ mage2_env_php }}"
   register: env_php_stat
+
+- name: Get the Old MySQL Username
+  shell: >
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
+    $env = include "{{ mage2_env_php }}";
+    print($env["db"]["connection"]["default"]["username"]);
+    '
+  args:
+    executable: "/bin/bash"
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  register: mage2_old_dbuser
+
+- name: Get the Old MySQL DB Name
+  shell: >
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
+    $env = include "{{ mage2_env_php }}";
+    print($env["db"]["connection"]["default"]["dbname"]);
+    '
+  args:
+    executable: "/bin/bash"
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  register: mage2_old_dbname
+
+- set_fact:
+    mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser.stdout | regex_replace('[a-z0-9]+_', '') }}"
+  when: env_php_stat.stat.exists
+
+- set_fact:
+    mage2_new_dbname: "{{ nex_app_unixuser }}_{{ mage2_old_dbname.stdout | regex_replace('[a-z0-9]+_', '') }}"
+  when: env_php_stat.stat.exists
+
+- name: Change MySQL User Passwords
+  mysql_user:
+    name: "{{ mage2_new_dbuser }}"
+    password: "{{ mysql_user_pass }}"
+    host_all: true
+    config_file: "/root/.my.ansible.cnf"
+    state: "present"
+  when: mage2_new_dbuser is defined
+  ignore_errors: true
 
 - name: Set New MySQL Creds
   shell: >
@@ -137,11 +160,16 @@
     xargs -r sed -i 's/{{ mage2_old_dbname | quote }}/{{ mage2_new_dbname | quote }}/g'
   become: true
   become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  ignore_errors: true
 
 - name: Scrub Other Files for Old DB Refs (DB User)
   shell: >
     find {{ siteworx_docroot }} -type f -name '*.php' |
     xargs -r sed -i 's/{{ mage2_old_dbuser | quote }}/{{ mage2_new_dbuser | quote }}/g'
-  when: (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
+  when:
+    - env_php_stat.stat.exists
+    - (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
   become: true
   become_user: "{{ nex_app_unixuser }}"
+  ignore_errors: true
