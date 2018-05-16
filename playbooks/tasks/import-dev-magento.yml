@@ -21,11 +21,6 @@
   when: env_php_stat.stat.exists
   register: mage2_old_dbuser
 
-- name: OLD DB USER
-  debug:
-    var: mage2_old_dbuser.stdout
-  when: env_php_stat.stat.exists
-
 - name: Get the Old MySQL DB Name
   shell: >
     . ~{{ nex_app_unixuser }}/.bashrc && php -r '
@@ -39,27 +34,12 @@
   when: env_php_stat.stat.exists
   register: mage2_old_dbname
 
-- name: OLD DB NAME
-  debug:
-    var: mage2_old_dbname.stdout
-  when: env_php_stat.stat.exists
-
 - set_fact:
     mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser.stdout | regex_replace('[a-z0-9]+_', '') }}"
   when: env_php_stat.stat.exists
 
-- name: NEW DB USER
-  debug:
-    var: mage2_new_dbuser
-  when: env_php_stat.stat.exists
-
 - set_fact:
     mage2_new_dbname: "{{ nex_app_unixuser }}_{{ mage2_old_dbname.stdout | regex_replace('[a-z0-9]+_', '') }}"
-  when: env_php_stat.stat.exists
-
-- name: NEW DB NAME
-  debug:
-    var: mage2_new_dbname
   when: env_php_stat.stat.exists
 
 - name: Change MySQL User Passwords
@@ -180,7 +160,8 @@
     xargs -r sed -i 's/{{ mage2_old_dbname | quote }}/{{ mage2_new_dbname | quote }}/g'
   become: true
   become_user: "{{ nex_app_unixuser }}"
-  when: mage2_old_dbname is defined and mage2_new_dbname is defined
+  when: env_php_stat.stat.exists
+  ignore_errors: true
 
 - name: Scrub Other Files for Old DB Refs (DB User)
   shell: >
@@ -191,3 +172,4 @@
     - (mage2_old_dbname != mage2_old_dbuser) or (mage2_new_dbname != mage2_new_dbuser)
   become: true
   become_user: "{{ nex_app_unixuser }}"
+  ignore_errors: true
