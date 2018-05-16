@@ -36,9 +36,11 @@
 
 - set_fact:
     mage2_new_dbuser: "{{ mage2_old_dbuser | regexp_replace('\w+_', '') }}"
+  when: mage2_old_dbuser is defined
 
 - set_fact:
     mage2_new_dbname: "{{ mage2_old_dbname | regexp_replace('\w+_', '') }}"
+  when: mage2_old_dbname is defined
 
 - name: Change MySQL User Passwords
   mysql_user:
