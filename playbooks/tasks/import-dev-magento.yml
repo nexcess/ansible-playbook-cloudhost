@@ -22,6 +22,7 @@
   register: mage2_old_dbuser
 
 - name: OLD DB USER
+  debug:
     var: mage2_old_dbuser
 
 - name: Get the Old MySQL DB Name
@@ -38,15 +39,24 @@
   register: mage2_old_dbname
 
 - name: OLD DB NAME
+  debug:
     var: mage2_old_dbname
 
 - set_fact:
     mage2_new_dbuser: "{{ nex_app_unixuser }}_{{ mage2_old_dbuser | regex_replace('[a-z0-9]+_', '') }}"
   when: mage2_old_dbuser is defined
 
+- name: NEW DB USER
+  debug:
+    var: mage2_new_dbuser
+
 - set_fact:
     mage2_new_dbname: "{{ nex_app_unixuser }}_{{ mage2_old_dbname | regex_replace('[a-z0-9]+_', '') }}"
   when: mage2_old_dbname is defined
+
+- name: NEW DB NAME
+  debug:
+    var: mage2_new_dbname
 
 - name: Change MySQL User Passwords
   mysql_user:
