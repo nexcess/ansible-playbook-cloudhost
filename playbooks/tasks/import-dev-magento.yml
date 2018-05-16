@@ -1,16 +1,44 @@
 ---
 
 - set_fact:
-    mage2_old_dbname: "{{ cloudhost_import_rename_old_username }}_mage2"
+    mage2_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
+
+- name: See if env.php Exists
+  stat:
+    path: "{{ mage2_env_php }}"
+  register: env_php_stat
+
+- name: Get the Old MySQL Username
+  shell: >
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
+    $env = include "{{ mage2_env_php }}";
+    print($env["db"]["connection"]["default"]["username"]);
+    '
+  args:
+    executable: "/bin/bash"
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  register: mage2_old_dbuser
+
+- name: Get the Old MySQL DB Name
+  shell: >
+    . ~{{ nex_app_unixuser }}/.bashrc && php -r '
+    $env = include "{{ mage2_env_php }}";
+    print($env["db"]["connection"]["default"]["dbname"]);
+    '
+  args:
+    executable: "/bin/bash"
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  register: mage2_old_dbname
 
 - set_fact:
-    mage2_new_dbname: "{{ nex_app_unixuser }}_mage2"
+    mage2_new_dbuser: "{{ mage2_old_dbuser | regexp_replace('\w+_', '') }}"
 
 - set_fact:
-    mage2_old_dbuser: "{{ cloudhost_import_rename_old_username }}_mage2"
-
-- set_fact:
-    mage2_new_dbuser: "{{ nex_app_unixuser }}_mage2"
+    mage2_new_dbname: "{{ mage2_old_dbname | regexp_replace('\w+_', '') }}"
 
 - name: Change MySQL User Passwords
   mysql_user:
@@ -20,14 +48,6 @@
     config_file: "/root/.my.ansible.cnf"
     state: "present"
   ignore_errors: true
-
-- set_fact:
-    mage2_env_php: "{{ siteworx_docroot }}/app/etc/env.php"
-
-- name: See if env.php Exists
-  stat:
-    path: "{{ mage2_env_php }}"
-  register: env_php_stat
 
 - name: Set New MySQL Creds
   shell: >
