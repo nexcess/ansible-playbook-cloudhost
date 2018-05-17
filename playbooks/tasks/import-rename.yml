@@ -50,11 +50,25 @@
     replace: "{{ cloudhost_import_rename_new_username }}"
   with_items: "{{ meta_contents.stdout_lines }}"
 
+- name: Mask Email@Domain Collisions
+  replace:
+    path: "{{ item }}"
+    regexp: "@{{ cloudhost_import_rename_old_domain }}"
+    replace: "@TEMPTOKENDOMAIN12345.NO"
+  with_items: "{{ meta_contents.stdout_lines }}"
+
 - name: Replace Old/New IWORX-META File Contents (Domain)
   replace:
     path: "{{ item }}"
     regexp: "{{ cloudhost_import_rename_old_domain }}"
     replace: "{{ cloudhost_import_rename_new_domain }}"
+  with_items: "{{ meta_contents.stdout_lines }}"
+
+- name: Unmask Email@Domain Collisions
+  replace:
+    path: "{{ item }}"
+    regexp: "@TEMPTOKENDOMAIN12345.NO"
+    replace: "@{{ cloudhost_import_rename_old_domain }}"
   with_items: "{{ meta_contents.stdout_lines }}"
 
 - name: Replace Old/New IWORX-META File Contents (Temp Domain)
