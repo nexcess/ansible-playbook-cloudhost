@@ -135,6 +135,7 @@
   become: true
   become_user: "{{ nex_app_unixuser }}"
   when: env_php_stat.stat.exists
+  ignore_errors: true
 
 - name: Update Base URLs (This May Be Redundant)
   command: >
