@@ -1,7 +1,10 @@
 ---
 
 - set_fact:
-    siteworx_docroot: "/home/{{ nex_app_unixuser }}/{{ nex_app_domain }}/html"
+    siteworx_domainroot: "/home/{{ nex_app_unixuser }}/{{ nex_app_domain }}"
+
+- set_fact:
+    siteworx_docroot: "{{ siteworx_domainroot }}/html"
 
 - name: Make a New MySQL User Password
   command: >

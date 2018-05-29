@@ -149,11 +149,27 @@
   shell: |
     . ~{{ nex_app_unixuser }}/.bashrc && php {{ siteworx_docroot }}/bin/magento cache:clean
     . ~{{ nex_app_unixuser }}/.bashrc && php {{ siteworx_docroot }}/bin/magento cache:flush
+    rm -rf {{ siteworx_domainroot }}/var/cache/*
+    rm -rf {{ siteworx_docroot }}/var/cache/*
+    rm -rf {{ siteworx_domainroot }}/var/session/*
+    rm -rf {{ siteworx_docroot }}/var/session/*
   args:
     executable: "/bin/bash"
   become: true
   become_user: "{{ nex_app_unixuser }}"
   when: env_php_stat.stat.exists
+  ignore_errors: true
+
+- name: Remove Old Log/Report Files
+  shell: |
+    rm -rf {{ siteworx_domainroot }}/var/log/*
+    rm -rf {{ siteworx_docroot }}/var/log/*
+    rm -rf {{ siteworx_domainroot }}/var/report/*
+    rm -rf {{ siteworx_docroot }}/var/report/*
+  become: true
+  become_user: "{{ nex_app_unixuser }}"
+  when: env_php_stat.stat.exists
+  ignore_errors: true
 
 - name: Scrub Other Files for Old DB Refs (DB Name)
   shell: >
