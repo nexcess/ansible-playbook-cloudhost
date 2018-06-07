@@ -86,14 +86,14 @@
 - name: Scrub Other Files for Old DB Refs (DB Name)
   shell: >
     find {{ siteworx_docroot }} -type f -name '*.php' -print0 |
-    xargs -0 -r sed -i 's/{{ wp_old_dbname }}/{{ wp_new_dbname }}/g'
+    xargs -P4 -0 -r sed -i 's/{{ wp_old_dbname }}/{{ wp_new_dbname }}/g'
   become: true
   become_user: "{{ nex_app_unixuser }}"
 
 - name: Scrub Other Files for Old DB Refs (DB User)
   shell: >
     find {{ siteworx_docroot }} -type f -name '*.php' -print0 |
-    xargs -0 -r sed -i 's/{{ wp_old_dbuser }}/{{ wp_new_dbuser }}/g'
+    xargs -P4 -0 -r sed -i 's/{{ wp_old_dbuser }}/{{ wp_new_dbuser }}/g'
   when: (wp_old_dbname != wp_old_dbuser) or (wp_new_dbname != wp_new_dbuser)
   become: true
   become_user: "{{ nex_app_unixuser }}"
