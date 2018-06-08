@@ -43,3 +43,8 @@
     enablerepo="nexcess"
     state="present"
   when: mode == "post"
+
+- name: Genrate a Base IWorx API Key
+  shell: >
+    nodeworx -un -c Apikey -a generate
+  when: mode == 'post'
