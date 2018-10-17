@@ -3,6 +3,10 @@
 ## Base Vars
 nexcess_repo_enabled: false
 server_selinux_enforcing: false
+server_mount_opts:
+  - point: "/"
+    opts: "defaults,noatime"
+server_mount_opts_remount: true
 mysql_pid_file: "/var/lib/mysql/mysqld.pid"
 
 ## IWorx Vars
