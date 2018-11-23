@@ -45,7 +45,7 @@ docker exec --tty $container_id env TERM=xterm bash -c 'source /opt/rh/rh-ruby22
 
 # Install Gems and Run Serverspec
 printf ${green}"Installing deps and running tests."${neutral}
-docker exec --tty $container_id env TERM=xterm bash -c 'source /opt/rh/rh-ruby22/enable; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake'
+docker exec --tty $container_id env TERM=xterm bash -c 'PATH="/opt/rh/rh-ruby22/root/usr/local/bin/:${PATH}"; source /opt/rh/rh-ruby22/enable; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake'
 
 # Remove the Docker container (if configured).
 if [ "$cleanup" = true ]; then
