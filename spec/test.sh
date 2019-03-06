@@ -41,7 +41,7 @@ printf ${green}"Installing Ruby and Bundler."${neutral}
 docker exec --tty $container_id env TERM=xterm bash -c 'yum install -y centos-release-scl'
 docker exec --tty $container_id env TERM=xterm bash -c 'yum-config-manager --enable rhel-server-rhscl-7-rpms'
 docker exec --tty $container_id env TERM=xterm bash -c 'yum install -y rh-ruby22'
-docker exec --tty $container_id env TERM=xterm bash -c 'source /opt/rh/rh-ruby22/enable; gem install bundler'
+docker exec --tty $container_id env TERM=xterm bash -c 'source /opt/rh/rh-ruby22/enable; gem install bundler -v "1.17.3"'
 
 # Install Gems and Run Serverspec
 printf ${green}"Installing deps and running tests."${neutral}
