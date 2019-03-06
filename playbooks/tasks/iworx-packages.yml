@@ -1,6 +1,6 @@
 ---
 
-- name: Convert Puppet IntetrWorx Packages To InterWorx Format
+- name: Convert Puppet InterWorx Packages To InterWorx Format
   set_fact: { iw_packages: "{{ iw_packages | default([]) + [item.value] }}"}
   with_dict: "{{ hostvars[inventory_hostname]['interworx::metaworx::packages'] }}"
 
