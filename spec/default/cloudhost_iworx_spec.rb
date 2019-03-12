@@ -17,7 +17,7 @@ describe package('libnss-mysql') do
   it { should be_installed }
 end
 
-describe command('/home/interworx/bin/config.pex --global --get --name siteworx_ssh_feature') do
+describe command('/home/interworx/bin/config.pex --global --get --name SITEWORX_SSH_FEATURE') do
   its(:stdout) { should match /on/ }
 end
 

@@ -9,5 +9,5 @@
     /home/interworx/bin/config.pex
     --global
     --set
-    --name siteworx_ssh_feature
+    --name SITEWORX_SSH_FEATURE
     --value on
