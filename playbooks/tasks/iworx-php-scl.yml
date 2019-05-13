@@ -9,7 +9,7 @@
 
 - name: Find Installed PHP Versions
   shell: >
-    ls -dm "{{ php_remi_root }}"/* | tr -d ' '
+    find "{{ php_remi_root }}" -maxdepth 1 -name 'php*' -printf '%p,' | sed 's/.$//'
   register: directory_php_names
 
 - name: Enable Installed PHP Versions
