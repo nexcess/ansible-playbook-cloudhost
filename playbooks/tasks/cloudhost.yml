@@ -1,4 +1,11 @@
 ---
+- name: Ensure base packages are up to date
+  yum:
+    name: '*'
+    state: 'latest'
+    disablerepo: '*'
+    enablerepo: 'base,updates'
+  when: mode == 'pre'
 
 - include: iworx-ini.yml
   when:
