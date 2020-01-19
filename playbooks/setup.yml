@@ -3,7 +3,7 @@
 - include: base.yml
 
 - name: Setup an InterWorx Server
-  hosts: cloudhost
+  hosts: cloudhost,chlb
   become: true
   any_errors_fatal: true
   pre_tasks:
