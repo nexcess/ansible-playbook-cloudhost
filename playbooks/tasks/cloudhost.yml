@@ -38,7 +38,7 @@
 
 - name: Install ImageMagick
   yum:
-    name="ImageMagick6"
+    name="ImageMagick"
     enablerepo="remi"
     state="present"
   when: mode == 'post'
