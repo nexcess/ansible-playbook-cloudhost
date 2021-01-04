@@ -41,10 +41,10 @@
     name="ImageMagick"
     enablerepo="remi"
     state="present"
-  when: mode == 'post'
+  when: mode == "post"
 
 ## this should always be the last task
 - name: Restart Cloudhost
   reboot:
     test_command="/bin/true"
-  when: mode == 'post'
+  when: mode == "post"
