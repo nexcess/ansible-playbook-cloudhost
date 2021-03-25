@@ -3,7 +3,7 @@
 - include: base.yml
 
 - name: Setup an InterWorx Server
-  hosts: cloudhost
+  hosts: cloudhost,chlb,chfs,chdb,chweb
   become: true
   any_errors_fatal: true
   pre_tasks:
@@ -14,8 +14,9 @@
     - { role: nexcess.php, php_prefix: "php71" }
     - { role: nexcess.php, php_prefix: "php72" }
     - { role: nexcess.php, php_prefix: "php73" }
-    - nexcess.interworx
+    - { role: nexcess.php, php_prefix: "php80" }
     - nexcess.mariadb
+    - nexcess.interworx
     - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
     - nexcess.repo
   post_tasks:
