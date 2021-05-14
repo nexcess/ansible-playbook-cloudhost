@@ -1,48 +1,5 @@
 ---
 
-## Base Vars
-nexcess_repo_enabled: false
-server_selinux_enforcing: false
-server_mount_opts:
-  - point: "/"
-    opts: "defaults,noatime"
-server_mount_opts_remount: true
-mysql_pid_file: "/var/lib/mysql/mysqld.pid"
-
-## IWorx Vars
-iw_ns1: "ns1.nexcess.net"
-iw_ns2: "ns2.nexcess.net"
-iw_ns3: "ns3.nexcess.net"
-iw_ns4: "ns4.nexcess.net"
-
-iw_theme_name: "nexcess"
-iw_theme_git_repo: "https://github.com/nexcess/interworx-theme.git"
-iw_theme_git_version: "master"
-
-iw_ssl_email: "ssladmin@nexcess.net"
-
-iw_symlink_base_php: true
-iw_symlink_base_php_path: "/opt/remi/php56/root/usr/bin/php"
-
-iw_release_channel: 'stable'
-
-## PHP
-php_single_version: false
-
-## Firewall - Ultimately handled by APF but set this to start
-firewall_v4_group_rules:
-  401 allow iworx to the world:
-    - "-A INPUT -p tcp --dport 2443 -j ACCEPT"
-
-firewall_v6_group_rules:
-  401 allow iworx to the world:
-    - "-A INPUT -p tcp --dport 2443 -j ACCEPT"
-
-## Prevent puppet from running in a non-blocking fashion
-puppet_agent_fire_and_forget: false
-## Update Puppet compile master for Cloudhosts
-puppet_server: "yy-node62188.us-midwest-1.nexcess.net"
-
 ## InterWorx import vars
 cloudhost_import_backup_checksum: ""
 cloudhost_import_backup_url: ""
