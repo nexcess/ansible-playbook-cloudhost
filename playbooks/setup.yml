@@ -14,7 +14,6 @@
     - { role: nexcess.php, php_prefix: "php71" }
     - { role: nexcess.php, php_prefix: "php72" }
     - { role: nexcess.php, php_prefix: "php73" }
-    - { role: nexcess.php, php_prefix: "php80" }
     - nexcess.mariadb
     - nexcess.interworx
     - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
