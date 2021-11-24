@@ -14,7 +14,7 @@
 
 - name: "Activate swap partition"
   shell: swapon /dev/sdb1
-  when: swappart.shell.rc == 0
+  when: swappart.rc == 0
 
 - name: "Write swap entry to fstab"
   mount: name=none
@@ -24,4 +24,4 @@
     passno=0
     dump=0
     state=present
-  when: swappart.shell.rc == 0
+  when: swappart.rc == 0
