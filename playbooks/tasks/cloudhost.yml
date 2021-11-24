@@ -1,7 +1,4 @@
 ---
-- include: swap.yaml
-  when: mode == "pre"
-
 - name: Ensure base packages are up to date
   yum:
     name: '*'
