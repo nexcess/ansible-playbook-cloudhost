@@ -1,7 +1,7 @@
 ---
 
 - name: Deploy / Update InterWorx Servers
-  hosts: cloudhost
+  hosts: cloudhost,saashost
   become: true
   any_errors_fatal: true
   pre_tasks:
