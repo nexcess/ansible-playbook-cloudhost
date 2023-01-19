@@ -1,0 +1,33 @@
+---
+
+# try to find swap disk -- skip if it is already partitioned or not found
+- name: "Find swap disk"
+  set_fact:
+    swap_disk: "/dev/{{ item.key }}"
+  with_dict: "{{ ansible_devices }}"
+  when: "item.value.partitions|length == 0 and (item.value.size == '12.00 GB' or item.value.size == '6.00 GB')"
+
+# parted module doesn't support swap fs type, must use shell
+- name: "Partition swap disk"
+  shell: 'parted {{ swap_disk }} -s -- mklabel gpt mkpart "swap" linux-swap 1 -1'
+  when: swap_disk is defined
+  register: swappart
+
+- name: "Format swap partition"
+  shell: "mkswap {{ swap_disk }}1"
+  when: swap_disk is defined and swappart.rc == 0
+  register: swapFS
+
+- name: "Activate swap partition"
+  shell: "swapon {{ swap_disk }}1"
+  when: swap_disk is defined and swapFS.rc == 0
+
+- name: "Write swap entry to fstab"
+  mount: name=none
+    src="{{ swap_disk }}1"
+    fstype=swap
+    opts=defaults
+    passno=0
+    dump=0
+    state=present
+  when: swap_disk is defined and swapFS.rc == 0
