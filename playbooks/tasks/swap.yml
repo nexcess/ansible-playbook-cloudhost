@@ -23,11 +23,12 @@
   when: swap_disk is defined and swapFS.rc == 0
 
 - name: "Write swap entry to fstab"
-  mount: name=none
-    src="{{ swap_disk }}1"
-    fstype=swap
-    opts=defaults
-    passno=0
-    dump=0
-    state=present
+  mount:
+    name: none
+    src: "{{ swap_disk }}1"
+    fstype: swap
+    opts: defaults
+    passno: '0'
+    dump: '0'
+    state: present
   when: swap_disk is defined and swapFS.rc == 0
