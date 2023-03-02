@@ -62,12 +62,12 @@ printf "\n"
 printf "%s\n" "${green}Installing Ruby and Bundler.${neutral}"
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y centos-release-scl'
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum-config-manager --enable rhel-server-rhscl-7-rpms'
-docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y rh-ruby22'
-docker exec --tty "$container_id" env TERM=xterm bash -c 'source /opt/rh/rh-ruby22/enable; gem install bundler -v "1.17.3"'
+docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y rh-ruby26'
+docker exec --tty "$container_id" env TERM=xterm bash -c 'source /opt/rh/rh-ruby26/enable; gem install bundler -v "1.17.3"'
 
 # Install Gems and Run Serverspec
 printf "%s\n" "${green}Installing deps and running tests.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm bash -c 'PATH="/opt/rh/rh-ruby22/root/usr/local/bin/:${PATH}"; source /opt/rh/rh-ruby22/enable; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake'
+docker exec --tty "$container_id" env TERM=xterm bash -c 'PATH="/opt/rh/rh-ruby26/root/usr/local/bin/:${PATH}"; source /opt/rh/rh-ruby26/enable; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake'
 
 # Remove the Docker container (if configured).
 if [ "$cleanup" = true ]; then
