@@ -18,6 +18,17 @@
         state: touch
       changed_when: false
 
+    # this pulls in a "newer" djbdns rpm that has a higher DATALIMIT set
+    # else for some kernel versions you'll get this in dnscache logs:
+    #   dnscache: fatal: not enough memory for cache of size
+    # and something like this in syslog:
+    #   Feb 27 17:19:04 49cf0a03a2f7 kernel: mmap: dnscache (7539): VmData 3002368 exceed data ulimit 3000000. Update limits or use boot option ignore_rlimit_data.
+    - name: Add djbdns repo
+      ansible.builtin.yum_repository:
+        name: iworx-djbdns
+        description: iworx djbdns test repo
+        baseurl: "http://updates.interworx.com/_internal/builds/00-rpm-build/794/RPMS/7/x86_64/"
+
     - include: tasks/cloudhost.yml mode="pre"
 
   roles:

@@ -1,9 +1,11 @@
 ---
+os: linux
+dist: focal
+language: shell
 services: docker
 
-env:
-  - distro: centos7
+before_install:
+  - docker build -t nexcess/ansible-playbook-cloudhost .
 
 script:
   - ${PWD}/spec/test.sh
-
