@@ -26,7 +26,13 @@ opts=(--privileged --tmpfs /tmp --tmpfs /run --volume=/sys/fs/cgroup:/sys/fs/cgr
 
 # Run the container using the supplied OS.
 printf "%s\n" "${green}Starting Docker container: ${docker_image}${neutral}"
-docker run --detach --volume="$PWD":/etc/ansible:rw --name "$container_id" "${opts[@]}" "${docker_image}:latest"
+docker run \
+  --detach \
+  --volume="$PWD":/etc/ansible:rw \
+  --name "$container_id" \
+  --hostname "ci-test.nexcess.net" \
+  "${opts[@]}" \
+  "${docker_image}:latest"
 
 # give systemd time to boot
 attempts=0
