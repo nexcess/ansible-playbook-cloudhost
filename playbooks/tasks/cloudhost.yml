@@ -47,4 +47,4 @@
 - name: Restart Cloudhost
   reboot:
     test_command="/bin/true"
-  when: mode == "post"
+  when: mode == "post" and post_run_reboot is true
