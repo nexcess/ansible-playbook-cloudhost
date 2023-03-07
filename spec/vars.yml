@@ -8,5 +8,8 @@ iw_ns1: '8.8.8.8'
 iw_ns2: '8.8.4.4'
 iw_setup_ssl: false
 iw_skip_hosts_edit: true
+iw_mysql_ver: "10.6"
+iw_php_ver: "7.3"
 firewall_included: false
 server_set_sysctl_base: false
+post_run_reboot: false
