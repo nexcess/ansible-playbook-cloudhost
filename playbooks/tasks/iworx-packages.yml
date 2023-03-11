@@ -2,7 +2,7 @@
 
 - name: Convert Puppet InterWorx Packages To InterWorx Format
   set_fact: { iw_packages: "{{ iw_packages | default([]) + [item.value] }}"}
-  with_dict: "{{ hostvars[inventory_hostname]['interworx::metaworx::packages'] }}"
+  with_dict: "{{ hostvars[inventory_hostname]['interworx::cloud::packages'] }}"
 
 - name: Copy iw-packages.json to Server
   copy:
