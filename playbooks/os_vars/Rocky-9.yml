@@ -1,0 +1,8 @@
+---
+iw_release_channel: 'beta'
+
+iw_use_alt_repo_file: false
+iw_install_script_url: 'https://updates.interworx.com/interworx/8/install.sh'
+
+iw_mysql_ver: "system"
+iw_php_ver: "8.1"
