@@ -6,6 +6,9 @@
   any_errors_fatal: true
   pre_tasks:
     - include_vars:
+        dir="{{ playbook_dir }}/os_vars"
+        files_matching="{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+    - include_vars:
         dir="{{ inventory_dir }}/project_vars"
       ignore_errors: true
     - include_vars:
