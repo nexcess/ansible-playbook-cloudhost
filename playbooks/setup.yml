@@ -9,11 +9,36 @@
   pre_tasks:
     - include: tasks/cloudhost.yml mode="pre"
   roles:
-    - { role: nexcess.php, php_prefix: "php56" }
-    - { role: nexcess.php, php_prefix: "php70" }
-    - { role: nexcess.php, php_prefix: "php71" }
-    - { role: nexcess.php, php_prefix: "php72" }
-    - { role: nexcess.php, php_prefix: "php73" }
+    - role: nexcess.php
+      vars:
+        php_prefix: "php56"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+    - role: nexcess.php
+      vars:
+        php_prefix: "php70"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+    - role: nexcess.php
+      vars:
+        php_prefix: "php71"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+    - role: nexcess.php
+      vars:
+        php_prefix: "php72"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+    - role: nexcess.php
+      vars:
+        php_prefix: "php73"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
     - nexcess.mariadb
     - nexcess.interworx
     - { role: nexcess.puppet, when: "nex_env_target is undefined or nex_env_target != 'vagrant'" }
