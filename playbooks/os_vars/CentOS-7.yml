@@ -4,5 +4,7 @@ iw_release_channel: 'release'
 iw_use_alt_repo_file: true
 iw_alt_repo_file_url: 'https://updates.interworx.com/_archive/iw-archive-iw6-2344/interworx.repo'
 
+iw_use_custom_theme: true
+
 iw_symlink_base_php: true
 iw_symlink_base_php_path: "/opt/remi/php56/root/usr/bin/php"
