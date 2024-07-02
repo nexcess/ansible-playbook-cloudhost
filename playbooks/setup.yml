@@ -1,7 +1,5 @@
 ---
 
-- include: base.yml
-
 - name: RHEL7 Swap repo to nexcess
   hosts: cloudhost,saashost
   become: true
@@ -10,6 +8,8 @@
       when:
         - ansible_os_family == 'RedHat'
         - ansible_distribution_major_version == '7'
+
+- include: base.yml
 
 - name: Setup an InterWorx Server
   hosts: cloudhost,saashost
