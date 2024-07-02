@@ -7,9 +7,9 @@
   become: true
   tasks:
     - shell: 'sed -i -e "s/mirrorlist/#mirrorlist/" -e "s/#baseurl/baseurl/" -e "s/mirror.centos.org\/centos\//mirror.us-midwest-1.nexcess.net\/CentOS\//" /etc/yum.repos.d/CentOS-Base.repo'
-    when:
-      - ansible_os_family == 'RedHat'
-      - ansible_distribution_major_version == '7'
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
 
 - name: Setup an InterWorx Server
   hosts: cloudhost,saashost
