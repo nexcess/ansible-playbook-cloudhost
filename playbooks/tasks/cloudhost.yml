@@ -43,6 +43,37 @@
     state="present"
   when: mode == "post"
 
+- name: Enable quota in grub cmdline flags
+  lineinfile:
+    path: /etc/default/grub
+    regexp: '^GRUB_CMDLINE_LINUX_DEFAULT="(.*)"$'
+    line: 'GRUB_CMDLINE_LINUX_DEFAULT="\1 rootflags=usrquota,grpquota"'
+    backup: true
+    backrefs: true
+  when:
+    - mode == "post"
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version == '9'
+
+- name: Regenerate grub config
+  command: /sbin/grub2-mkconfig --update-bls-cmdline -o /boot/grub2/grub.cfg
+  when:
+    - mode == "post"
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version == '9'
+
+- name: Ensure quota flags on root partition
+  mount:
+    path: /
+    state: mounted
+    fstype: xfs
+    src: {{ansible_cmdline.root}}
+    opts: defaults,noatime,usrquota,grpquota
+  when:
+    - mode == "post"
+    - ansible_os_family == 'RedHat'
+    - ansible_distribution_major_version == '9'
+
 ## this should always be the last task
 - name: Restart Cloudhost
   reboot:
