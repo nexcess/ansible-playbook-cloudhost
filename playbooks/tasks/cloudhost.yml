@@ -67,7 +67,7 @@
     path: /
     state: mounted
     fstype: xfs
-    src: {{ansible_cmdline.root}}
+    src: "{{ansible_cmdline.root}}"
     opts: defaults,noatime,usrquota,grpquota
   when:
     - mode == "post"
