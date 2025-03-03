@@ -6,7 +6,7 @@ iw_install_script_url: 'https://updates.interworx.com/interworx/8/install.sh'
 
 iw_use_custom_theme: false
 
-iw_mysql_ver: "system"
+iw_mysql_ver: "10.5"
 iw_php_ver: "8.1"
 
 nexcess_repo_gpg_key_url: "https://imirror.us-midwest-1.nexcess.net/nexcess/RPM-GPG-KEY-MA"
