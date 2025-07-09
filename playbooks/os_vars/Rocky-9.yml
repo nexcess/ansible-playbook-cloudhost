@@ -1,5 +1,5 @@
 ---
-iw_release_channel: 'beta'
+iw_release_channel: 'release'
 
 iw_use_alt_repo_file: false
 iw_install_script_url: 'https://updates.interworx.com/interworx/8/install.sh'
