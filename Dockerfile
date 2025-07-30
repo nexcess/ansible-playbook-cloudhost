@@ -19,7 +19,7 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
 ## setup dependencies
 # openssh-server is needed because it generates /etc/ssh/ssh_host_rsa_key which
 # iworx default proftpd config expects to exist and other things probably do too
-RUN yum makecache fast \
+RUN yum makecache \
     && yum -y install deltarpm epel-release initscripts \
     && yum -y install sudo which git python python-pip openssh-server\
     && yum -y update
