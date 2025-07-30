@@ -6,7 +6,7 @@ WORKDIR /etc/ansible
 
 # for details on running systemd in a centos container, see:
 #  https://hub.docker.com/_/centos/
-RUN yum -y update systemd
+RUN yum -y install systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
     rm -f /lib/systemd/system/multi-user.target.wants/*;\
     rm -f /etc/systemd/system/*.wants/*;\
