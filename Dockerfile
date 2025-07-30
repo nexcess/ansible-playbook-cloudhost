@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 centos:7
+FROM --platform=linux/amd64 rockylinux:9
 ENV ANSIBLE_VERSION="2.9.27"
 ENV ANSIBLE_LINT_VERSION="4.2.0"
 ENV container=docker
