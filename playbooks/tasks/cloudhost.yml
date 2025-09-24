@@ -4,7 +4,7 @@
     name: '*'
     state: 'latest'
     disablerepo: '*'
-    enablerepo: 'base,updates'
+    enablerepo: 'base,updates,baseos,appstream'
   when: mode == 'pre'
 
 - include: iworx-ini.yml
