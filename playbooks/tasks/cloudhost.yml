@@ -10,9 +10,6 @@
 - include: iworx-settings.yml
   when: mode == "post"
 
-- include: iworx-php-scl.yml
-  when: mode == "post"
-
 - include: iworx-multi-ssh.yml
   when: mode == "post"
 
