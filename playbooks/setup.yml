@@ -58,6 +58,7 @@
       template:
         src: scripts/cloudhost-init.sh.j2
         dest: /tmp/cloudhost-init.sh
+        mode: 700
       when:
         - nex_skip_roles | bool
 
