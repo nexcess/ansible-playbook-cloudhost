@@ -303,6 +303,24 @@ update_hosts() {
 
 }
 
+reset_nodeworx_info () {
+
+    local nw_pass={{ iw_master_password }}
+    local nw_license={{ iw_license_key }}
+    
+    # Change password for master NW user to match what Nocworx gave us
+    nodeworx --user --non-interactive --verbose \
+    --controller Users \
+    --action edit \
+    --user nobody@nexcess.net
+    --password ${nw_pass} \
+    --confirm_password ${nw_pass}
+   
+    # Set new license key in iworx.ini
+    /usr/local/interworx/bin/ini.pex ini.pex --set --section iworx.license --index key --value "${nw_license}"
+
+}
+
 nginx_cloudhost () {
 
   local role
@@ -372,6 +390,7 @@ check_extra_interfaces
 sync_ips
 update_hosts
 reset_ipa
+reset_nodeworx_info
 nginx_cloudhost
 puppet_setup
 run_puppet

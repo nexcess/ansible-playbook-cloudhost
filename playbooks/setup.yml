@@ -54,8 +54,22 @@
   become: true
   hosts: cloudhost,saashost
   tasks:
-    - name: Run the init script for new cloudhosts
-      script:
-        cmd: scripts/cloudhost-init.sh
+    - name: Deploy init script to new cloudhost
+      template:
+        src: scripts/cloudhost-init.sh.j2
+        dest: /tmp/cloudhost-init.sh
+      when:
+        - nex_skip_roles | bool
+
+    - name: Run the init script for new cloudhost
+      shell:
+        cmd: /tmp/cloudhost-init.sh
+      when:
+        - nex_skip_roles | bool
+
+    - name: Remove init script after completion
+      file:
+        path: /tmp/cloudhost-init.sh
+        state: absent
       when:
         - nex_skip_roles | bool
