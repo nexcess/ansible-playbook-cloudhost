@@ -243,6 +243,12 @@ function run_puppet() {
 
 }
 
+function allow_stark_login() {
+
+  sed -i 's,^stark$,,' /etc/security/nexcess-nologin.conf
+
+}
+
 function yum_update() {
 
   # Run yumupdate script to bring in any updates since the source image was built
@@ -394,5 +400,6 @@ reset_nodeworx_info
 nginx_cloudhost
 puppet_setup
 run_puppet
+allow_stark_login
 yum_update
 update_birth_certificate
