@@ -245,6 +245,7 @@ function run_puppet() {
 
 function allow_stark_login() {
 
+  action_print "Removing stark user from blacklist"
   sed -i 's,^stark$,,' /etc/security/nexcess-nologin.conf
 
 }
@@ -256,47 +257,6 @@ function yum_update() {
   if [[ -x /etc/nexcess/yumupdate ]]; then
     /etc/nexcess/yumupdate
   fi
-}
-
-function update_birth_certificate() {
-
-  action_print "Updating birth certificate..."
-  chattr -i /root/.birth-certificate
-
-  cli_opts=$(grep -FA1 '[options]' /root/.birth-certificate | tail -n1)
-
-  {
-    echo "[name]"
-    hostname
-
-    echo ""
-    echo "[date]"
-    date --rfc-3339=seconds
-
-    echo ""
-    echo "[php]"
-    php -v
-
-    echo ""
-    echo "[mysql]"
-    mysql -V
-
-    echo ""
-    echo "[ips]"
-    /sbin/ip addr show | grep -oP '(?<=inet )[0-9]{1,3}(\.[0-9]{1,3}){3}' | sort | tr "\n" " "
-    echo ""
-
-    echo ""
-    echo "[uname]"
-    uname -a
-
-    echo ""
-    echo "[redhat-release]"
-    cat /etc/redhat-release
-  } > /root/.birth-certificate
-
-  chattr +i /root/.birth-certificate
-
 }
 
 update_hosts() {
@@ -338,6 +298,15 @@ nginx_cloudhost () {
       rm -rf /etc/nginx/vhost.d/ssl/*
     fi
     /usr/local/interworx/bin/php /etc/iworx-hooks.d/nginx.php 2>&1 | tee -a $LOGFILE
+  fi
+
+}
+
+remove_birth_certificate() {
+
+  action_print "Removing birth certificate to reset birthday fact..."
+  if [[ -f /root/.birth-certificate ]]; then
+    rm /root/.birth-certificate
   fi
 
 }
@@ -389,6 +358,8 @@ until [[ -n $iworx_db_status && -n $iworx_sock_stat ]]; do
   fi
   iworx_sock_stat=$(stat -c %n /usr/local/interworx/mysql/iworx-db.sock)
 done
+allow_stark_login
+remove_birth_certificate
 prep_swap_volume
 reset_mysql_passwords
 sync_license_hostname
@@ -400,6 +371,4 @@ reset_nodeworx_info
 nginx_cloudhost
 puppet_setup
 run_puppet
-allow_stark_login
 yum_update
-update_birth_certificate
