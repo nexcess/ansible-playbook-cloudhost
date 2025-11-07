@@ -314,6 +314,14 @@ nginx_cloudhost() {
 
 }
 
+enable_stark_user() {
+
+  action_print "Ensuring the stark user is enabled..."
+  sed -i '/^stark$/d' /etc/security/nexcess-nologin.conf
+  usermod -s /bin/bash stark
+
+}
+
 remove_birth_certificate() {
 
   action_print "Removing birth certificate to reset birthday fact..."
