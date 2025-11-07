@@ -243,10 +243,11 @@ function run_puppet() {
 
 }
 
-function allow_stark_login() {
+function enable_stark_login() {
 
-  action_print "Removing stark user from blacklist"
+  action_print "Re-enabling stark user to continue Ansible run..."
   sed -i 's,^stark$,,' /etc/security/nexcess-nologin.conf
+  usermod -s /bin/bash stark
 
 }
 
@@ -358,7 +359,6 @@ until [[ -n $iworx_db_status && -n $iworx_sock_stat ]]; do
   fi
   iworx_sock_stat=$(stat -c %n /usr/local/interworx/mysql/iworx-db.sock)
 done
-allow_stark_login
 remove_birth_certificate
 prep_swap_volume
 reset_mysql_passwords
@@ -371,4 +371,5 @@ reset_nodeworx_info
 nginx_cloudhost
 puppet_setup
 run_puppet
+enable_stark_user
 yum_update
