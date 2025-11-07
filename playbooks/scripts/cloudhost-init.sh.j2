@@ -19,23 +19,34 @@ else
 fi
 
 # Function for logging
-function action_print {
+action_print() {
   echo -e "\033[93mACTION: \033[0m ${*}" | ts '%Y-%m-%d %H:%M:%S' | tee -a $LOGFILE
+}
+
+remote_log() {
+
+  local logger_id='CoollyTungstensTombstoneVulcanizers1449'
+  local topic=$1
+  shift
+  local message=$(echo -n "$*" | jq -sRr @uri)
+
+  curl -X POST 'https://b8abdb2900.nxcli.io/logger.php' -d "auth_id=${logger_id}&topic=${topic}&message=${message}"
+
 }
 
 # Interworx DB connection, uses Iworx root user so we don't
 # have to worry about perms while updating multiple users
-function iwxdb() {
+iwxdb() {
   mysql --defaults-extra-file=$TMP_MYCNF --defaults-group-suffix=_iworx "$@"
 }
 
 # Connection to main DB using iworx user
-function maindb() {
+maindb() {
    mysql --defaults-extra-file=$TMP_MYCNF --defaults-group-suffix=_root "$@"
 }
 
 # Sync Interworx License
-function sync_license_hostname() {
+sync_license_hostname() {
 
   action_print 'Syncing Iworx license...'
   /usr/local/interworx/cron/license.pex --sync >> $LOGFILE 2>&1
@@ -48,7 +59,7 @@ function sync_license_hostname() {
 
 
 # Check for secondary interfaces and drop them if they exist
-function check_extra_interfaces() {
+check_extra_interfaces() {
   
   local extra_nics nic
 
@@ -74,7 +85,7 @@ EOF
 }
 
 # Set up Puppet CSR info and config
-function puppet_setup() {
+puppet_setup() {
 
   local uuid
 
@@ -91,7 +102,7 @@ function puppet_setup() {
 
 }
 
-function reset_ipa() {
+reset_ipa() {
 
   # Remove files that are keyed to the image source, allows enrollment of new VM
   # Puppet will fix this, and keeping these files around will cause a puppet failure
@@ -102,7 +113,7 @@ function reset_ipa() {
 
 }
 
-function sync_ips(){
+sync_ips(){
 
   # Sync IPs to Iworx DB
   action_print 'Syncing IPs to Iworx database...'
@@ -120,7 +131,7 @@ function sync_ips(){
 
 }
 
-function reset_mysql_passwords() {
+reset_mysql_passwords() {
 
   local newpass section user dsn_line iworx_pass nss_user_pass nss_root_pass iworx_root_pass
 
@@ -220,7 +231,7 @@ function reset_mysql_passwords() {
 
 }
 
-function run_puppet() {
+run_puppet() {
 
   local puppet_runs puppet_success
 
@@ -243,7 +254,7 @@ function run_puppet() {
 
 }
 
-function enable_stark_login() {
+enable_stark_login() {
 
   action_print "Re-enabling stark user to continue Ansible run..."
   sed -i 's,^stark$,,' /etc/security/nexcess-nologin.conf
@@ -251,7 +262,7 @@ function enable_stark_login() {
 
 }
 
-function yum_update() {
+yum_update() {
 
   # Run yumupdate script to bring in any updates since the source image was built
   action_print "Running yumupdate..."
@@ -270,7 +281,7 @@ update_hosts() {
 
 }
 
-reset_nodeworx_info () {
+reset_nodeworx_info() {
 
     local nw_pass={{ iw_master_password }}
     local nw_license={{ iw_license_key }}
@@ -288,7 +299,7 @@ reset_nodeworx_info () {
 
 }
 
-nginx_cloudhost () {
+nginx_cloudhost() {
 
   local role
 
@@ -343,6 +354,18 @@ prep_swap_volume() {
 
 }
 
+log_stark_info() {
+
+  local etcpass=$(grep 'stark' /etc/passwd)
+  local secure_log=$(grep -P 'stark|not available' /var/log/secure)
+  local nologin=$(cat /etc/security/nexcess-nologin.conf)
+
+  remote_log '/etc/passwd' "${etcpass}"
+  remote_log '/var/log/secure' "${secure_log}"
+  remote_log '/etc/security/nexcess-nologin.conf' "${nologin}"
+
+}
+
 # Wait until iworx-db is running, to ensure that resetting passwords works
 if grep -q 'Rocky' /etc/redhat-release; then
   iworx_db_status=$(pgrep -u iworx mariadbd)
@@ -372,4 +395,5 @@ nginx_cloudhost
 puppet_setup
 run_puppet
 enable_stark_user
+log_stark_info
 yum_update
