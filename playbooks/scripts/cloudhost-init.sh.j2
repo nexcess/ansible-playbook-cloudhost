@@ -254,14 +254,6 @@ run_puppet() {
 
 }
 
-enable_stark_login() {
-
-  action_print "Re-enabling stark user to continue Ansible run..."
-  sed -i 's,^stark$,,' /etc/security/nexcess-nologin.conf
-  usermod -s /bin/bash stark
-
-}
-
 yum_update() {
 
   # Run yumupdate script to bring in any updates since the source image was built
