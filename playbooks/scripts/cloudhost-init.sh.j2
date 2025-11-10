@@ -198,7 +198,7 @@ reset_mysql_passwords() {
   perl -pi -e "s,NSS_USER_PW,${nss_user_pass}," /etc/libnss-mysql.cfg
   perl -pi -e "s,NSS_ROOT_PW,${nss_root_pass}," /etc/libnss-mysql-root.cfg
   /usr/local/interworx/bin/ini.pex --set --section mysql.nss --index nss_root_pw --value "${nss_root_pass}"
-  /usr/local/interworx/bin/ini.pex --set --section mysql.hss --index nss_user_pw --value "${nss_user_pass}"
+  /usr/local/interworx/bin/ini.pex --set --section mysql.nss --index nss_user_pw --value "${nss_user_pass}"
 
   # Create pass for iworx user on iworx-db and main MariaDB instance
   action_print "Setting new database password for iworx user..."
