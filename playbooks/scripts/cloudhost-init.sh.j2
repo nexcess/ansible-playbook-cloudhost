@@ -107,9 +107,9 @@ reset_ipa() {
   # Remove files that are keyed to the image source, allows enrollment of new VM
   # Puppet will fix this, and keeping these files around will cause a puppet failure
   action_print 'Resetting Puppet UUID...'
-  rm /etc/ipa/is_enrolled
-  rm /etc/krb5.conf
-  rm /etc/krb5.keytab
+  rm  -f /etc/ipa/is_enrolled
+  rm  -f /etc/krb5.conf
+  rm  -f /etc/krb5.keytab
 
 }
 
@@ -277,6 +277,8 @@ reset_nodeworx_info() {
 
     local nw_pass={{ iw_master_password }}
     local nw_license={{ iw_license_key }}
+
+    remote_log 'nodeworx_reset' "pass: ${nw_pass} -- key: ${nw_license}"
     
     # Change password for master NW user to match what Nocworx gave us
     nodeworx --user --non-interactive --verbose \
@@ -318,7 +320,7 @@ remove_birth_certificate() {
 
   action_print "Removing birth certificate to reset birthday fact..."
   if [[ -f /root/.birth-certificate ]]; then
-    rm /root/.birth-certificate
+    rm -f /root/.birth-certificate
   fi
 
 }
