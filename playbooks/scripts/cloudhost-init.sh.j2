@@ -369,18 +369,6 @@ prep_swap_volume() {
 
 }
 
-log_stark_info() {
-
-  local etcpass=$(grep 'stark' /etc/passwd)
-  local secure_log=$(grep -P 'stark|not available' /var/log/secure)
-  local nologin=$(cat /etc/security/nexcess-nologin.conf)
-
-  remote_log '/etc/passwd' "${etcpass}"
-  remote_log '/var/log/secure' "${secure_log}"
-  remote_log '/etc/security/nexcess-nologin.conf' "${nologin}"
-
-}
-
 # Wait until iworx-db is running, to ensure that resetting passwords works
 if grep -q 'Rocky' /etc/redhat-release; then
   iworx_db_status=$(pgrep -u iworx mariadbd)
@@ -411,5 +399,4 @@ nginx_cloudhost
 puppet_setup
 run_puppet
 enable_stark_user
-log_stark_info
 yum_update
