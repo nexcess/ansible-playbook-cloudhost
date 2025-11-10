@@ -293,6 +293,18 @@ reset_nodeworx_info() {
 
 }
 
+reset_nodeworx_apikey() {
+
+    if [[ -f /root/.iworx-api.key ]]; then
+        rm -f /root/.iworx-api.key
+    fi
+
+    nodeworx --user --non-interactive --verbose \
+    --controller Apikey
+    --action delete
+
+}
+
 nginx_cloudhost() {
 
   local role
@@ -393,6 +405,7 @@ sync_ips
 update_hosts
 reset_ipa
 reset_nodeworx_info
+reset_nodeworx_apikey
 nginx_cloudhost
 puppet_setup
 run_puppet
