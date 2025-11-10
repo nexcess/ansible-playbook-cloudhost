@@ -275,16 +275,17 @@ update_hosts() {
 
 reset_nodeworx_info() {
 
-    local nw_pass={{ iw_master_password }}
-    local nw_license={{ iw_license_key }}
+    local nw_user='{{ iw_master_email }}'
+    local nw_pass='{{ iw_master_password }}'
+    local nw_license='{{ iw_license_key }}'
 
-    remote_log 'nodeworx_reset' "pass: ${nw_pass} -- key: ${nw_license}"
+    remote_log 'nodeworx_reset' "master email: ${nw_user} -- pass: ${nw_pass} -- key: ${nw_license}"
     
     # Change password for master NW user to match what Nocworx gave us
     nodeworx --user --non-interactive --verbose \
     --controller Users \
     --action edit \
-    --user nobody@nexcess.net
+    --user ${nw_user}
     --password ${nw_pass} \
     --confirm_password ${nw_pass}
    
