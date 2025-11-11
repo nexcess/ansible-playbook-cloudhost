@@ -300,8 +300,8 @@ reset_nodeworx_apikey() {
         rm -f /root/.iworx-api.key
     fi
 
-    nodeworx --user --non-interactive --verbose \
-    --controller Apikey
+    nodeworx --user-auth --non-interactive --verbose \
+    --controller Apikey \
     --action delete
 
 }
