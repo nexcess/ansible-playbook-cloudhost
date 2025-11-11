@@ -5,7 +5,6 @@ declare -A INI_SECTION_USER_MAP
 IWORX_INI='/usr/local/interworx/iworx.ini'
 TMP_MYCNF='/tmp/.my.cnf.prov'
 LOGFILE='/tmp/cloudinit.log'
-INI_SECTION_USER_MAP[horde]='iworx_horde'
 INI_SECTION_USER_MAP[vpopmail]='iworx_vpopmail'
 INI_SECTION_USER_MAP[proftpd]='iworx_ftp'
 INI_SECTION_USER_MAP[vpopmail.spam]='iworx_spam'
@@ -161,12 +160,7 @@ reset_mysql_passwords() {
 
     # Also update dependent config files for appropriate DB
     case $section in
-      'horde')
-        perl -pi -e "s,IWORX_HORDE_PW,$newpass," /usr/local/interworx/lib/horde/iworx.ini
-        perl -pi -e "s,IWORX_HORDE_PW,$newpass," /usr/local/interworx/lib/horde/config/conf.php
-      ;;
       'vpopmail')
-        perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /usr/local/interworx/lib/horde/iworx.ini
         perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /usr/local/interworx/lib/roundcube/iworx.ini
         perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /home/vpopmail/etc/vpopmail.mysql
         perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /etc/dovecot/dovecot-sql.conf.ext
@@ -175,7 +169,6 @@ reset_mysql_passwords() {
         perl -pi -e "s,IWORX_FTP_PW,$newpass," /etc/proftpd.conf
       ;;
       'vpopmail.spam')
-        perl -pi -e "s,IWORX_SPAM_PW,$newpass," /usr/local/interworx/lib/horde/iworx.ini
         perl -pi -e "s,IWORX_SPAM_PW,$newpass," /usr/local/interworx/lib/roundcube/iworx.ini
       ;;
       'roundcube')
