@@ -282,10 +282,10 @@ reset_nodeworx_info() {
     remote_log 'nodeworx_reset' "master email: ${nw_user} -- pass: ${nw_pass} -- key: ${nw_license}"
     
     # Change password for master NW user to match what Nocworx gave us
-    nodeworx --user --non-interactive --verbose \
+    nodeworx --user-auth --non-interactive --verbose \
     --controller Users \
     --action edit \
-    --user ${nw_user}
+    --user ${nw_user} \
     --password ${nw_pass} \
     --confirm_password ${nw_pass}
    
