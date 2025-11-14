@@ -30,7 +30,7 @@ iwxdb() {
 
 # Connection to main DB using iworx user
 maindb() {
-   mysql --defaults-extra-file=$TMP_MYCNF --defaults-group-suffix=_root "$@"
+   mysql --defaults-extra-file=$TMP_MYCNF --defaults-group-suffix=_prov "$@"
 }
 
 # Sync Interworx License
@@ -188,10 +188,12 @@ reset_mysql_passwords() {
   iworx_root_pass=$($MKPASSWD -l 12 -s 0)
 
   # Actually set password for 'iworx' in iworx-db, using 'root' user
+  action_print "Setting password in iworx-db..."
   iwxdb -e"SET PASSWORD FOR 'iworx'@'localhost' = PASSWORD('$iworx_pass')" >> $LOGFILE 2>&1
   iwxdb -e"SET PASSWORD FOR 'iworx'@'127.0.0.1' = PASSWORD('$iworx_pass')" >> $LOGFILE 2>&1
 
   # Actually set password for 'iworx' in main MariaDB instance, using 127.0.0.1 first so creds in $TMP_MYCNF stay valid until all passwords are changed
+  action_print "Setting password in MariaDB..."
   maindb -e"SET PASSWORD FOR 'iworx'@'127.0.0.1' = PASSWORD('$iworx_root_pass')" >> $LOGFILE 2>&1
   maindb -e"SET PASSWORD FOR 'iworx'@'localhost' = PASSWORD('$iworx_root_pass')" >> $LOGFILE 2>&1
 
