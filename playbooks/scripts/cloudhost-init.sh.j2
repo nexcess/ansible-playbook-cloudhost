@@ -1,0 +1,384 @@
+#!/usr/bin/env bash
+
+# GLOBAL VARS
+declare -A INI_SECTION_USER_MAP
+IWORX_INI='/usr/local/interworx/iworx.ini'
+TMP_MYCNF='/root/.my.prov.cnf'
+LOGFILE='/tmp/cloudinit.log'
+INI_SECTION_USER_MAP[vpopmail]='iworx_vpopmail'
+INI_SECTION_USER_MAP[proftpd]='iworx_ftp'
+INI_SECTION_USER_MAP[vpopmail.spam]='iworx_spam'
+INI_SECTION_USER_MAP[roundcube]='iworx_rc'
+
+# Set password binary for EL9
+if [[ -x $(which mkpasswd-expect) ]]; then
+  MKPASSWD='/usr/bin/mkpasswd-expect'
+else
+  MKPASSWD='/usr/bin/mkpasswd'
+fi
+
+# Function for logging
+action_print() {
+  echo -e "\033[93mACTION: \033[0m ${*}" | ts '%Y-%m-%d %H:%M:%S' | tee -a $LOGFILE
+}
+
+# Interworx DB connection, uses Iworx root user so we don't
+# have to worry about perms while updating multiple users
+iwxdb() {
+  mysql --defaults-extra-file=$TMP_MYCNF --defaults-group-suffix=_iworx "$@"
+}
+
+# Connection to main DB using iworx user
+maindb() {
+   mysql --defaults-extra-file=$TMP_MYCNF --defaults-group-suffix=_prov "$@"
+}
+
+# Sync Interworx License
+sync_license_hostname() {
+
+  action_print 'Syncing Iworx license...'
+  /usr/local/interworx/cron/license.pex --sync >> $LOGFILE 2>&1
+
+  # Let's swap the hostname while we're doing things in iworx.ini
+  /usr/local/interworx/bin/ini.pex --set --section iworx --index hostname --value "${HOSTNAME}"
+  /usr/local/interworx/bin/ini.pex --set --section lostpass --index domain --value "${HOSTNAME}"
+
+}
+
+
+# Check for secondary interfaces and drop them if they exist
+check_extra_interfaces() {
+  
+  local extra_nics nic
+
+  # Find virtual NICs that aren't a loopback device
+  action_print 'Finding additional NICs...'
+  extra_nics=$(python - <<'EOF'
+import netifaces
+secondary_devs = ''
+for dev in netifaces.interfaces():
+  if dev != 'lo' and ':' in dev:
+    secondary_devs = secondary_devs + dev + ' '
+print secondary_devs
+EOF
+)
+
+  # If any found, bring them down
+  if [[ -n $extra_nics ]]; then
+    for nic in $extra_nics; do
+      ifconfig ${nic} down
+    done
+  fi
+
+}
+
+# Set up Puppet CSR info and config
+puppet_setup() {
+
+  local uuid
+
+  # Pull in VM uuid from Nocworx
+  action_print 'Resetting Puppet UUID...'
+  /opt/puppetlabs/puppet/bin/curl --fail -s https://nocworx.nexcess.net/allocation/get-uuid.json > /etc/puppetlabs/puppet/csr_attributes.json 2>> $LOGFILE
+  uuid=$(/opt/puppetlabs/puppet/bin/ruby -rjson -ryaml -e 'j = JSON.load(File.read("/etc/puppetlabs/puppet/csr_attributes.json")); puts j["uuid"]')
+
+  # Set up Puppet CSR
+  /opt/puppetlabs/puppet/bin/ruby -rjson -ryaml -e 'j = JSON.load(File.read("/etc/puppetlabs/puppet/csr_attributes.json")); csr = {}; csr["custom_attributes"] = {}; csr["extension_requests"] = {}; csr["custom_attributes"]["1.2.840.113549.1.9.7"] = j["checksum"]; csr["extension_requests"]["pp_uuid"] = j["uuid"]; csr["extension_requests"]["pp_project"] = j["company"]; csr["extension_requests"]["pp_instance_id"] = j["id"]; puts csr.to_yaml' > /etc/puppetlabs/puppet/csr_attributes.yaml 2>> $LOGFILE
+
+  # Replace placeholder in puppet.conf with actual VM uuid
+  sed -i "s,CERTNAME_PLACEHOLDER,${uuid}," /etc/puppetlabs/puppet/puppet.conf
+
+}
+
+reset_ipa() {
+
+  # Remove files that are keyed to the image source, allows enrollment of new VM
+  # Puppet will fix this, and keeping these files around will cause a puppet failure
+  action_print 'Resetting Puppet UUID...'
+  rm  -f /etc/ipa/is_enrolled
+  rm  -f /etc/krb5.conf
+  rm  -f /etc/krb5.keytab
+
+}
+
+sync_ips(){
+
+  # Sync IPs to Iworx DB
+  action_print 'Syncing IPs to Iworx database...'
+  /usr/local/interworx/cron/ip.pex --sync >> $LOGFILE 2>&1
+
+  # Restart DNS services that might need it
+  action_print 'Restarting djbdns...'
+  service djbdns restart
+  /usr/local/interworx/bin/dns.pex --all >> $LOGFILE 2>&1
+
+  # Disable and re-enable default sites, to populate default vhost with new IPs
+  action_print 'Resetting default sites...'
+  nodeworx -u -n -c IpSites -a disableDefaultSites >> $LOGFILE 2>&1
+  nodeworx -u -n -c IpSites -a enableDefaultSites >> $LOGFILE 2>&1
+
+}
+
+reset_mysql_passwords() {
+
+  local newpass section user dsn_line iworx_pass nss_user_pass nss_root_pass iworx_root_pass
+
+  # Iterate over mail/FTP databases and update them, we have to use a user/db map because Roundcube DB user != DB name
+  for section in ${!INI_SECTION_USER_MAP[@]}; do
+
+    newpass=$($MKPASSWD -l 12 -s 0)
+    user=${INI_SECTION_USER_MAP[$section]}
+    action_print "Setting new database password for ${user}..."
+  
+    # Actually set the password for the users, on localhost and 127.0.0.1
+    iwxdb -e"SET PASSWORD FOR '${user}'@'localhost' = PASSWORD('$newpass')" >> $LOGFILE 2>&1
+    iwxdb -e"SET PASSWORD FOR '${user}'@'127.0.0.1' = PASSWORD('$newpass')" >> $LOGFILE 2>&1
+
+    # Set Iworx INI DSN line
+    case $user in
+      'iworx_rc')
+        dsn_line="mysqli://${user}:${newpass}@unix(/usr/local/interworx/mysql/iworx-db.sock)/iworx_roundcube"
+      ;;
+      *)
+        dsn_line="mysqli://${user}:${newpass}@unix(/usr/local/interworx/mysql/iworx-db.sock)/${user}"
+      ;;
+    esac
+  
+    # Update the main iworx.ini regardless of DB
+    /usr/local/interworx/bin/ini.pex --set --section ${section} --index dsn --value ${dsn_line}
+
+    # Also update dependent config files for appropriate DB
+    case $section in
+      'vpopmail')
+        perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /usr/local/interworx/lib/roundcube/iworx.ini
+        perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /home/vpopmail/etc/vpopmail.mysql
+        perl -pi -e "s,IWORX_VPOPMAIL_PW,$newpass," /etc/dovecot/dovecot-sql.conf.ext
+      ;;
+      'proftpd')
+        perl -pi -e "s,IWORX_FTP_PW,$newpass," /etc/proftpd.conf
+      ;;
+      'vpopmail.spam')
+        perl -pi -e "s,IWORX_SPAM_PW,$newpass," /usr/local/interworx/lib/roundcube/iworx.ini
+      ;;
+      'roundcube')
+        perl -pi -e "s,IWORX_RC_PW,$newpass," /usr/local/interworx/lib/roundcube/iworx.ini
+        perl -pi -e "s,IWORX_RC_PW,$newpass," /usr/local/interworx/lib/roundcube/config/config.inc.php
+      ;;
+    esac
+      
+   done
+ 
+  ## Special handling for nss-* users, iworx, and iworx-db root user
+  # Generate and set passwords for nss-* users
+  action_print 'Setting new database password for nss-* users...'
+  nss_user_pass=$($MKPASSWD -l 16 -s 0)
+  nss_root_pass=$($MKPASSWD -l 16 -s 0)
+  iwxdb -e"SET PASSWORD FOR 'nss-user'@'localhost' = PASSWORD('$nss_user_pass')" >> $LOGFILE 2>&1
+  iwxdb -e"SET PASSWORD FOR 'nss-root'@'localhost' = PASSWORD('$nss_root_pass')" >> $LOGFILE 2>&1
+ 
+  # Update NSS configs with new passwords
+  perl -pi -e "s,NSS_USER_PW,${nss_user_pass}," /etc/libnss-mysql.cfg
+  perl -pi -e "s,NSS_ROOT_PW,${nss_root_pass}," /etc/libnss-mysql-root.cfg
+  /usr/local/interworx/bin/ini.pex --set --section mysql.nss --index nss_root_pw --value "${nss_root_pass}"
+  /usr/local/interworx/bin/ini.pex --set --section mysql.nss --index nss_user_pw --value "${nss_user_pass}"
+
+  # Create pass for iworx user on iworx-db and main MariaDB instance
+  action_print "Setting new database password for iworx user..."
+  iworx_pass=$($MKPASSWD -l 12 -s 0)
+  iworx_root_pass=$($MKPASSWD -l 12 -s 0)
+
+  # Actually set password for 'iworx' in iworx-db, using 'root' user
+  action_print "Setting password in iworx-db..."
+  iwxdb -e"SET PASSWORD FOR 'iworx'@'localhost' = PASSWORD('$iworx_pass')" >> $LOGFILE 2>&1
+  iwxdb -e"SET PASSWORD FOR 'iworx'@'127.0.0.1' = PASSWORD('$iworx_pass')" >> $LOGFILE 2>&1
+
+  # Actually set password for 'iworx' in main MariaDB instance, using 127.0.0.1 first so creds in $TMP_MYCNF stay valid until all passwords are changed
+  action_print "Setting password in MariaDB..."
+  maindb -e"SET PASSWORD FOR 'iworx'@'127.0.0.1' = PASSWORD('$iworx_root_pass')" >> $LOGFILE 2>&1
+  maindb -e"SET PASSWORD FOR 'iworx'@'localhost' = PASSWORD('$iworx_root_pass')" >> $LOGFILE 2>&1
+
+  # Update passwords in /root/.my.cnf and also in iworx.ini
+  perl -pi -e "s,IWORX_ROOT_PASS,${iworx_root_pass},"  /root/.my.cnf
+  /usr/local/interworx/bin/ini.pex --set --section iworx --index dsn --value "mysqli://iworx:${iworx_pass}@unix(/usr/local/interworx/mysql/iworx-db.sock)/iworx"
+  /usr/local/interworx/bin/ini.pex --set --section iworx --index dsn.orig --value "mysqli://iworx:${iworx_pass}@unix(/usr/local/interworx/mysql/iworx-db.sock)/iworx"
+  /usr/local/interworx/bin/ini.pex --set --section mysql --index rootdsn --value "mysqli://iworx:${iworx_root_pass}@unix(/var/lib/mysql/mysql.sock)/mysql"
+
+  # Update root DSN in Iworx database to new MySQL password
+  iwxdb -e"UPDATE iworx.database_servers SET dsn = 'mysqli://iworx:${iworx_root_pass}@unix(/var/lib/mysql/mysql.sock)/mysql' WHERE id = 1 AND nickname = 'localhost'" >> $LOGFILE 2>&1
+
+  # Finally, set 'root' iworx-db password to same as 'iworx' user
+  action_print "Setting new database password for Iworx root DB user..."
+  iwxdb -e"SET PASSWORD FOR 'root'@'localhost' = PASSWORD('$iworx_pass')" >> $LOGFILE 2>&1
+
+  # Remove $TMP_MYCNF
+  rm -f ${TMP_MYCNF}
+
+}
+
+run_puppet() {
+
+  local puppet_runs puppet_success
+
+  # Stealing this from gogo
+  puppet_success=1
+  puppet_runs=0
+  # Run puppet until we get a zero return code, increment runs counter after each failure and break out if we've run more than 8 times
+  until /opt/puppetlabs/bin/puppet agent --config /etc/puppetlabs/puppet/puppet.conf --onetime --no-daemonize --show_diff --logdest /var/log/puppet/agent.log >/dev/null 2>&1; do
+    action_print "Completed puppet run ${puppet_runs}"
+    if [ $puppet_runs -gt 8 ]; then
+       puppet_success=0
+       break
+    fi
+    ((puppet_runs=puppet_runs+1))
+  done
+  if [ $puppet_success -eq 0 ]; then
+    echo "Puppet failed to complete successfully in 8 retries, please check log at /var/log/puppet/agent.log"
+    exit 1
+  fi
+
+}
+
+yum_update() {
+
+  # Run yumupdate script to bring in any updates since the source image was built
+  action_print "Running yumupdate..."
+  if [[ -x /etc/nexcess/yumupdate ]]; then
+    /etc/nexcess/yumupdate
+  fi
+}
+
+update_hosts() {
+
+  local ip_addr
+
+  ip_addr=$(ip a s eth0 | grep -Po '(?<=inet\s)(\d+\.?){4}(?=/\d\d)')
+
+  echo -e "${ip_addr}\t${HOSTNAME}" >> /etc/hosts
+
+}
+
+reset_nodeworx_info() {
+
+    local nw_user='{{ iw_master_email }}'
+    local nw_pass='{{ iw_master_password }}'
+    local nw_license='{{ iw_license_key }}'
+
+    # Change password for master NW user to match what Nocworx gave us
+    nodeworx --user-auth --non-interactive --verbose \
+    --controller Users \
+    --action edit \
+    --user ${nw_user} \
+    --password ${nw_pass} \
+    --confirm_password ${nw_pass}
+   
+    # Set new license key in iworx.ini
+    /usr/local/interworx/bin/ini.pex ini.pex --set --section iworx.license --index key --value "${nw_license}"
+
+}
+
+reset_nodeworx_apikey() {
+
+    if [[ -f /root/.iworx-api.key ]]; then
+        rm -f /root/.iworx-api.key
+    fi
+
+    nodeworx --user-auth --non-interactive --verbose \
+    --controller Apikey \
+    --action delete
+
+}
+
+nginx_cloudhost() {
+
+  local role
+
+  role=$(curl -s http://169.254.169.254/openstack/latest/meta_data.json | jq -r '.meta.roles')
+  if [[ $role == 'cloudhost' ]]; then
+    action_print 'Updating Nginx configuration'... | tee -a $LOGFILE
+    if [[ -n $(ls /etc/nginx/vhost.d/ssl) ]]; then
+      rm -rf /etc/nginx/vhost.d/ssl/*
+    fi
+    /usr/local/interworx/bin/php /etc/iworx-hooks.d/nginx.php 2>&1 | tee -a $LOGFILE
+  fi
+
+}
+
+enable_stark_user() {
+
+  action_print "Ensuring the stark user is enabled..."
+  sed -i '/^stark$/d' /etc/security/nexcess-nologin.conf
+  usermod -s /bin/bash stark
+
+}
+
+remove_birth_certificate() {
+
+  action_print "Removing birth certificate to reset birthday fact..."
+  if [[ -f /root/.birth-certificate ]]; then
+    rm -f /root/.birth-certificate
+  fi
+
+}
+
+prep_swap_volume() {
+
+  local swap_uuid swap_dev_id swap_dev_path
+  # Remove swap line from fstab, after backing up
+  # Prep /dev/vdb for swap
+  # Make and activate swap
+  
+  # Backup and remove from /etc/fstab
+  cp -a /etc/fstab /etc/fstab.preswap.$(date +%F)
+  sed -i '/\tswap\t/d' /etc/fstab
+
+  # Get swap device
+  swap_dev_id="$(lsblk | grep 12G | awk '{print $1}')"
+  swap_dev_path="/dev/${swap_dev_id}"
+
+  # 5. Make swap on ${swap_dev_path}
+  parted --script ${swap_dev_path} mklabel gpt 
+  parted --script ${swap_dev_path} mkpart primary 0% 100%
+  parted --script ${swap_dev_path} name 1 ${swap_dev_id}_SWAP
+  mkswap ${swap_dev_path}1
+  
+  # 6. Put swap in fstab, and enable
+  swap_uuid=$(blkid | awk "/${swap_dev_id}_SWAP/" | grep -Po '(?<= UUID\x3D\x22)\S+(?=\x22)')
+  if [[ -n $swap_uuid ]]; then
+    echo "UUID=${swap_uuid}       swap       swap    defaults        0       0" >> /etc/fstab
+    swapon UUID="${swap_uuid}"
+  fi
+
+
+}
+
+# Wait until iworx-db is running, to ensure that resetting passwords works
+if grep -q 'Rocky' /etc/redhat-release; then
+  iworx_db_status=$(pgrep -u iworx mariadbd)
+else
+  iworx_db_status=$(pgrep iworx-db)
+fi
+iworx_sock_stat=$(stat -c %n /usr/local/interworx/mysql/iworx-db.sock)
+until [[ -n $iworx_db_status && -n $iworx_sock_stat ]]; do
+  sleep 2
+  if grep -q 'Rocky' /etc/redhat-release; then
+    iworx_db_status=$(pgrep -u iworx mariadbd)
+  else
+    iworx_db_status=$(pgrep iworx-db)
+  fi
+  iworx_sock_stat=$(stat -c %n /usr/local/interworx/mysql/iworx-db.sock)
+done
+remove_birth_certificate
+prep_swap_volume
+reset_mysql_passwords
+sync_license_hostname
+check_extra_interfaces
+sync_ips
+update_hosts
+reset_ipa
+reset_nodeworx_info
+reset_nodeworx_apikey
+nginx_cloudhost
+puppet_setup
+run_puppet
+enable_stark_user
+yum_update

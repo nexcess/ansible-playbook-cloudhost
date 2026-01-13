@@ -7,26 +7,10 @@
     enablerepo: 'base,updates,baseos,appstream'
   when: mode == 'pre'
 
-- include: iworx-ini.yml
-  when:
-    - hostvars[inventory_hostname]['interworx::iworx_ini::settings'] is defined
-    - mode == "post"
-
-- include: iworx-packages.yml
-  when:
-    - hostvars[inventory_hostname]['interworx::packages'] is defined
-    - mode == "post"
-
 - include: iworx-settings.yml
   when: mode == "post"
 
-- include: iworx-php-scl.yml
-  when: mode == "post"
-
 - include: iworx-multi-ssh.yml
-  when: mode == "post"
-
-- include: manage-services.yml
   when: mode == "post"
 
 - name: Ensure APF Start-on-boot
