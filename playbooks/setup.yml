@@ -35,6 +35,41 @@
       when:
         - not nex_skip_roles | bool
   roles:
+    - role: nexcess.php
+      vars:
+        php_prefix: "php56"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+        - not nex_skip_roles | bool
+    - role: nexcess.php
+      vars:
+        php_prefix: "php70"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+        - not nex_skip_roles | bool
+    - role: nexcess.php
+      vars:
+        php_prefix: "php71"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+        - not nex_skip_roles | bool
+    - role: nexcess.php
+      vars:
+        php_prefix: "php72"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+        - not nex_skip_roles | bool
+    - role: nexcess.php
+      vars:
+        php_prefix: "php73"
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+        - not nex_skip_roles | bool
     - role: nexcess.mariadb
       when:
         - not nex_skip_roles | bool
