@@ -1,4 +1,4 @@
-FROM --platform=linux/amd64 centos:7
+FROM --platform=linux/amd64 rockylinux:9
 ENV ANSIBLE_VERSION="2.9.27"
 ENV ANSIBLE_LINT_VERSION="4.2.0"
 ENV container=docker
@@ -6,7 +6,7 @@ WORKDIR /etc/ansible
 
 # for details on running systemd in a centos container, see:
 #  https://hub.docker.com/_/centos/
-RUN yum -y update systemd
+RUN yum -y install systemd
 RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
     rm -f /lib/systemd/system/multi-user.target.wants/*;\
     rm -f /etc/systemd/system/*.wants/*;\
@@ -19,8 +19,8 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
 ## setup dependencies
 # openssh-server is needed because it generates /etc/ssh/ssh_host_rsa_key which
 # iworx default proftpd config expects to exist and other things probably do too
-RUN yum makecache fast \
-    && yum -y install deltarpm epel-release initscripts \
+RUN yum makecache \
+    && yum -y install epel-release initscripts \
     && yum -y install sudo which git python python-pip openssh-server\
     && yum -y update
 
