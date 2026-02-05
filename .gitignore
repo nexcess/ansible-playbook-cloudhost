@@ -10,3 +10,9 @@ vendor/
 Gemfile.lock
 .vagrant/
 playbooks/iworx-cp-install.sh
+local-testing/*.key*
+local-testing/network.yaml
+local-testing/interworx.yaml
+local-testing/apache.yaml
+local-testing/hosts.ini
+local-testing/deployable-vars.yml

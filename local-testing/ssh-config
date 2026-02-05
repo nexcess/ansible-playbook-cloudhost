@@ -1,0 +1,8 @@
+Host *
+  StrictHostKeyChecking no
+  ForwardAgent yes
+  ServerAliveInterval 60
+  ControlMaster auto
+  ControlPath ~/.ssh/mux-%r@%h:%p
+  ControlPersist 60m
+  IdentityFile /root/.ssh/deploy.key
