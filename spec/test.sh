@@ -67,6 +67,13 @@ printf "\n"
 # Install Ruby and Bundler
 printf "%s\n" "${green}Installing Ruby and Bundler.${neutral}"
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y centos-release-scl'
+# The SCL repos installed above also point at the dead mirrorlist; repoint
+# them at vault.centos.org so rh-ruby26 can resolve.
+docker exec --tty "$container_id" env TERM=xterm bash -c "sed -i \
+    -e 's|^mirrorlist=|#mirrorlist=|g' \
+    -e 's|^#[[:space:]]*baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+    -e 's|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+    /etc/yum.repos.d/CentOS-SCLo-*.repo"
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum-config-manager --enable rhel-server-rhscl-7-rpms'
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y rh-ruby26'
 docker exec --tty "$container_id" env TERM=xterm bash -c 'source /opt/rh/rh-ruby26/enable; gem install bundler -v "1.17.3"'
