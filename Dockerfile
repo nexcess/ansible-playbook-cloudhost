@@ -2,7 +2,16 @@ FROM --platform=linux/amd64 centos:7
 ENV ANSIBLE_VERSION="2.9.27"
 ENV ANSIBLE_LINT_VERSION="4.2.0"
 ENV container=docker
-WORKDIR /etc/ansible 
+WORKDIR /etc/ansible
+
+# CentOS 7 reached EOL on 2024-06-30 and mirrorlist.centos.org no longer
+# resolves. Repoint the base/updates/extras repos at the archive before any
+# yum command runs.
+RUN sed -i \
+        -e 's|^mirrorlist=|#mirrorlist=|g' \
+        -e 's|^#[[:space:]]*baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+        -e 's|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+        /etc/yum.repos.d/CentOS-*.repo
 
 # for details on running systemd in a centos container, see:
 #  https://hub.docker.com/_/centos/
@@ -21,6 +30,15 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
 # iworx default proftpd config expects to exist and other things probably do too
 RUN yum makecache fast \
     && yum -y install deltarpm epel-release initscripts \
+    && printf '%s\n' \
+        '[epel]' \
+        'name=Extra Packages for Enterprise Linux 7 - $basearch (archive)' \
+        'baseurl=https://archives.fedoraproject.org/pub/archive/epel/7/$basearch/' \
+        'enabled=1' \
+        'gpgcheck=1' \
+        'gpgkey=file:///etc/pki/rpm-gpg/RPM-GPG-KEY-EPEL-7' \
+        > /etc/yum.repos.d/epel.repo \
+    && rm -f /etc/yum.repos.d/epel-testing.repo \
     && yum -y install sudo which git python python-pip openssh-server\
     && yum -y update
 

@@ -39,3 +39,8 @@
     - nexcess.mariadb
   post_tasks:
     - include: tasks/cloudhost.yml mode="post"
+    # Production uses Puppet to register the installed multi-PHP versions
+    # with InterWorx. CI doesn't run Puppet, so do it here.
+    - include: tasks/iworx-php-scl.yml
+      vars:
+        php_remi_root: "/opt/remi"

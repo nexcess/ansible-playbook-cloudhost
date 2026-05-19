@@ -21,7 +21,11 @@ if [[ "$(docker images -q "${docker_image}:latest" 2> /dev/null)" == "" ]]; then
 fi
 
 ## Set up vars for Docker setup.
-opts=(--privileged --tmpfs /tmp --tmpfs /run --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --security-opt seccomp=unconfined)
+# --cgroupns=host is required for CentOS 7's systemd to boot inside Docker
+# 20.10+, which otherwise puts the container in a private cgroup namespace
+# that systemd v219 can't navigate (DBus never comes up). The cgroup mount
+# also needs to be rw so systemd can create its own slice/scope dirs.
+opts=(--privileged --cgroupns=host --tmpfs /tmp --tmpfs /run --tmpfs /run/lock --volume=/sys/fs/cgroup:/sys/fs/cgroup:rw --security-opt seccomp=unconfined)
 
 
 # Run the container using the supplied OS.
@@ -38,11 +42,9 @@ docker run \
 attempts=0
 printf "%s\n" "${green}Checking if systemd has booted...${neutral}"
 while ! docker exec "$container_id" systemctl list-units > /dev/null 2>&1; do
-  if ((attempts > 5)); then
-    printf "%s\n" "${red}Giving up waiting for systemd! Output below:${neutral}"
-    docker exec "$container_id" systemctl list-units
-    printf "\n"
-    break
+  if ((attempts > 11)); then
+    printf "%s\n" "${red}Giving up waiting for systemd!${neutral}"
+    exit 1
   fi
   printf "%s\n" "${green}Sleeping for 5 seconds...${neutral}"
   sleep 5
@@ -67,6 +69,13 @@ printf "\n"
 # Install Ruby and Bundler
 printf "%s\n" "${green}Installing Ruby and Bundler.${neutral}"
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y centos-release-scl'
+# The SCL repos installed above also point at the dead mirrorlist; repoint
+# them at vault.centos.org so rh-ruby26 can resolve.
+docker exec --tty "$container_id" env TERM=xterm bash -c "sed -i \
+    -e 's|^mirrorlist=|#mirrorlist=|g' \
+    -e 's|^#[[:space:]]*baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+    -e 's|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+    /etc/yum.repos.d/CentOS-SCLo-*.repo"
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum-config-manager --enable rhel-server-rhscl-7-rpms'
 docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y rh-ruby26'
 docker exec --tty "$container_id" env TERM=xterm bash -c 'source /opt/rh/rh-ruby26/enable; gem install bundler -v "1.17.3"'
