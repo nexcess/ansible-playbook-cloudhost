@@ -23,8 +23,9 @@ fi
 ## Set up vars for Docker setup.
 # --cgroupns=host is required for CentOS 7's systemd to boot inside Docker
 # 20.10+, which otherwise puts the container in a private cgroup namespace
-# that systemd v219 can't navigate (DBus never comes up).
-opts=(--privileged --cgroupns=host --tmpfs /tmp --tmpfs /run --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --security-opt seccomp=unconfined)
+# that systemd v219 can't navigate (DBus never comes up). The cgroup mount
+# also needs to be rw so systemd can create its own slice/scope dirs.
+opts=(--privileged --cgroupns=host --tmpfs /tmp --tmpfs /run --tmpfs /run/lock --volume=/sys/fs/cgroup:/sys/fs/cgroup:rw --security-opt seccomp=unconfined)
 
 
 # Run the container using the supplied OS.
@@ -41,11 +42,25 @@ docker run \
 attempts=0
 printf "%s\n" "${green}Checking if systemd has booted...${neutral}"
 while ! docker exec "$container_id" systemctl list-units > /dev/null 2>&1; do
-  if ((attempts > 5)); then
-    printf "%s\n" "${red}Giving up waiting for systemd! Output below:${neutral}"
-    docker exec "$container_id" systemctl list-units
-    printf "\n"
-    break
+  if ((attempts > 11)); then
+    printf "%s\n" "${red}Giving up waiting for systemd! Diagnostics:${neutral}"
+    printf "\n${red}--- host: /proc/cmdline ---${neutral}\n"
+    cat /proc/cmdline || true
+    printf "\n${red}--- host: mount | grep cgroup ---${neutral}\n"
+    mount | grep cgroup || true
+    printf "\n${red}--- host: docker info | grep -i cgroup ---${neutral}\n"
+    docker info 2>/dev/null | grep -i cgroup || true
+    printf "\n${red}--- container: mount | grep cgroup ---${neutral}\n"
+    docker exec "$container_id" sh -c 'mount | grep cgroup' || true
+    printf "\n${red}--- container: ls -la /sys/fs/cgroup ---${neutral}\n"
+    docker exec "$container_id" ls -la /sys/fs/cgroup/ || true
+    printf "\n${red}--- container: ps -ef (top) ---${neutral}\n"
+    docker exec "$container_id" sh -c 'ps -ef | head -20' || true
+    printf "\n${red}--- container: systemctl list-units ---${neutral}\n"
+    docker exec "$container_id" systemctl list-units || true
+    printf "\n${red}--- container: journalctl -b (tail) ---${neutral}\n"
+    docker exec "$container_id" sh -c 'journalctl --no-pager -b 2>&1 | tail -40' || true
+    exit 1
   fi
   printf "%s\n" "${green}Sleeping for 5 seconds...${neutral}"
   sleep 5
