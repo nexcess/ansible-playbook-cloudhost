@@ -4,8 +4,13 @@ dist: focal
 language: shell
 services: docker
 
+env:
+  jobs:
+    - DISTRO=centos7
+    - DISTRO=rocky9
+
 before_install:
-  - docker build -t nexcess/ansible-playbook-cloudhost .
+  - docker build -t "nexcess/ansible-playbook-cloudhost:${DISTRO}" -f "Dockerfile.${DISTRO}" .
 
 script:
-  - ${PWD}/spec/test.sh
+  - DISTRO="${DISTRO}" "${PWD}/spec/test.sh"
