@@ -12,6 +12,13 @@
       include_vars:
         file: ../spec/vars.yml
 
+    # Same os_vars pickup as playbooks/base.yml. Loaded after spec/vars.yml so
+    # distro defaults (e.g. iw_php_ver, iw_mysql_ver) win over CI overrides.
+    - name: include OS-specific vars
+      include_vars:
+        dir: "{{ playbook_dir }}/os_vars"
+        files_matching: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+
     - name: ensure /etc/sysconfig/network file
       file:
         path: /etc/sysconfig/network
