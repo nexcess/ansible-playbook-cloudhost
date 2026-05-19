@@ -102,7 +102,7 @@ esac
 
 # Install Gems and Run Serverspec
 printf "%s\n" "${green}Installing deps and running tests.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake ${DISTRO}"
+docker exec --tty "$container_id" env TERM=xterm bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake spec:${DISTRO}"
 
 # Remove the Docker container (if configured).
 if [ "$cleanup" = true ]; then
