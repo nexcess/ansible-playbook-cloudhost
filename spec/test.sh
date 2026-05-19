@@ -43,23 +43,7 @@ attempts=0
 printf "%s\n" "${green}Checking if systemd has booted...${neutral}"
 while ! docker exec "$container_id" systemctl list-units > /dev/null 2>&1; do
   if ((attempts > 11)); then
-    printf "%s\n" "${red}Giving up waiting for systemd! Diagnostics:${neutral}"
-    printf "\n${red}--- host: /proc/cmdline ---${neutral}\n"
-    cat /proc/cmdline || true
-    printf "\n${red}--- host: mount | grep cgroup ---${neutral}\n"
-    mount | grep cgroup || true
-    printf "\n${red}--- host: docker info | grep -i cgroup ---${neutral}\n"
-    docker info 2>/dev/null | grep -i cgroup || true
-    printf "\n${red}--- container: mount | grep cgroup ---${neutral}\n"
-    docker exec "$container_id" sh -c 'mount | grep cgroup' || true
-    printf "\n${red}--- container: ls -la /sys/fs/cgroup ---${neutral}\n"
-    docker exec "$container_id" ls -la /sys/fs/cgroup/ || true
-    printf "\n${red}--- container: ps -ef (top) ---${neutral}\n"
-    docker exec "$container_id" sh -c 'ps -ef | head -20' || true
-    printf "\n${red}--- container: systemctl list-units ---${neutral}\n"
-    docker exec "$container_id" systemctl list-units || true
-    printf "\n${red}--- container: journalctl -b (tail) ---${neutral}\n"
-    docker exec "$container_id" sh -c 'journalctl --no-pager -b 2>&1 | tail -40' || true
+    printf "%s\n" "${red}Giving up waiting for systemd!${neutral}"
     exit 1
   fi
   printf "%s\n" "${green}Sleeping for 5 seconds...${neutral}"
