@@ -21,7 +21,10 @@ if [[ "$(docker images -q "${docker_image}:latest" 2> /dev/null)" == "" ]]; then
 fi
 
 ## Set up vars for Docker setup.
-opts=(--privileged --tmpfs /tmp --tmpfs /run --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --security-opt seccomp=unconfined)
+# --cgroupns=host is required for CentOS 7's systemd to boot inside Docker
+# 20.10+, which otherwise puts the container in a private cgroup namespace
+# that systemd v219 can't navigate (DBus never comes up).
+opts=(--privileged --cgroupns=host --tmpfs /tmp --tmpfs /run --volume=/sys/fs/cgroup:/sys/fs/cgroup:ro --security-opt seccomp=unconfined)
 
 
 # Run the container using the supplied OS.
