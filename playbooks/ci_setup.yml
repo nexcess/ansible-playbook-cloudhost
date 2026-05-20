@@ -12,6 +12,13 @@
       include_vars:
         file: ../spec/vars.yml
 
+    # Same os_vars pickup as playbooks/base.yml. Loaded after spec/vars.yml so
+    # distro defaults (e.g. iw_php_ver, iw_mysql_ver) win over CI overrides.
+    - name: include OS-specific vars
+      include_vars:
+        dir: "{{ playbook_dir }}/os_vars"
+        files_matching: "{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml"
+
     - name: ensure /etc/sysconfig/network file
       file:
         path: /etc/sysconfig/network
@@ -28,19 +35,41 @@
         name: iworx-djbdns
         description: iworx djbdns test repo
         baseurl: "http://updates.interworx.com/_internal/builds/00-rpm-build/794/RPMS/7/x86_64/"
+      when: ansible_distribution_major_version == '7'
 
     - include: tasks/cloudhost.yml mode="pre"
 
   roles:
-    - { role: nexcess.php, php_prefix: "php56" }
-    - { role: nexcess.php, php_prefix: "php70" }
-    - { role: nexcess.php, php_prefix: "php71" }
-    - nexcess.interworx
+    - role: nexcess.php
+      vars:
+        php_prefix: "php56"
+      when: ansible_distribution_major_version == '7'
+    - role: nexcess.php
+      vars:
+        php_prefix: "php70"
+      when: ansible_distribution_major_version == '7'
+    - role: nexcess.php
+      vars:
+        php_prefix: "php71"
+      when: ansible_distribution_major_version == '7'
+    # nexcess.mariadb must run before nexcess.interworx so MariaDB is
+    # already set up (service installed + running) when the iworx install
+    # script tries to talk to it. The production setup.yml uses the same
+    # order; ci_setup.yml had them swapped, which on EL9 caused the iworx
+    # installer to fail with a mysqld.service symlink conflict and an
+    # unreachable mysql socket.
     - nexcess.mariadb
+    - nexcess.interworx
   post_tasks:
     - include: tasks/cloudhost.yml mode="post"
-    # Production uses Puppet to register the installed multi-PHP versions
-    # with InterWorx. CI doesn't run Puppet, so do it here.
+    # iworx 8 defaults to mod_suphp; the spec tests expect php-fpm (matching
+    # the EL7 build's baseline). Switch the install mode explicitly.
+    - name: Switch iworx PHP install mode to php-fpm
+      command: nodeworx -unv -c Http -a updatePhpMode --php_mode=php-fpm
+    # Production uses Puppet to register the installed PHP versions with
+    # InterWorx. CI doesn't run Puppet, so do it here for both EL7 (multi-
+    # PHP php56/70/71) and EL9 (single iw_php_ver, e.g. /opt/remi/php81
+    # installed by the nexcess.interworx role).
     - include: tasks/iworx-php-scl.yml
       vars:
         php_remi_root: "/opt/remi"

@@ -1,0 +1,14 @@
+---
+# Rules below are demoted from failure to warning so ansible-lint 5.x can
+# run cleanly against this repo. The findings are mostly in upstream roles
+# (nexcess.mariadb, nexcess.php) that target ansible 2.9 idioms; fixing
+# them is out of scope here.
+skip_list:
+  - command-instead-of-module
+  - command-instead-of-shell
+  - ignore-errors
+  - literal-compare
+  - no-changed-when
+  - package-latest
+  - risky-file-permissions
+  - role-name

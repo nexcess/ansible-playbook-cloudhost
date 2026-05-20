@@ -8,16 +8,16 @@ green="$(tput setaf 2)"
 neutral="$(tput sgr0)"
 
 
-playbook=${playbook:-"test.yml"}
-distro=${distro:-"centos7"}
+DISTRO=${DISTRO:-"centos7"}
 cleanup=${cleanup:-"true"}
 container_id=${container_id:-$(date +%s)}
-docker_image='nexcess/ansible-playbook-cloudhost'
+docker_image="nexcess/ansible-playbook-cloudhost:${DISTRO}"
+dockerfile="Dockerfile.${DISTRO}"
 
-## Build docker container
-if [[ "$(docker images -q "${docker_image}:latest" 2> /dev/null)" == "" ]]; then
+## Build docker container if it isn't already built (e.g. running locally).
+if [[ "$(docker images -q "${docker_image}" 2> /dev/null)" == "" ]]; then
   printf "%s\n" "${green}Building Docker image: ${docker_image}${neutral}"
-  docker build -t "nexcess/ansible-role-interworx:latest" - < Dockerfile
+  docker build -t "${docker_image}" -f "${dockerfile}" .
 fi
 
 ## Set up vars for Docker setup.
@@ -36,7 +36,7 @@ docker run \
   --name "$container_id" \
   --hostname "ci-test.nexcess.net" \
   "${opts[@]}" \
-  "${docker_image}:latest"
+  "${docker_image}"
 
 # give systemd time to boot
 attempts=0
@@ -56,33 +56,70 @@ printf "%s\n" "${green}Installing dependencies if needed...${neutral}"
 docker exec --tty "$container_id" env TERM=xterm /bin/bash -c 'if [ -e /etc/ansible/requirements.yml ]; then ansible-galaxy install -r /etc/ansible/requirements.yml; fi'
 printf "\n"
 
+# ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED=false demotes the deprecated `static:`
+# attribute used by nexcess.php's include task from a fatal error to a warning
+# in ansible-core 2.14+. EL7 ships ansible 2.9 which doesn't know the option;
+# the env var is silently ignored there.
+ansible_env=(env TERM=xterm ANSIBLE_FORCE_COLOR=1 ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED=false)
+
 ## Run Ansible Lint
 printf "%s\n" "${green}Linting Ansible role/playbook.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm ansible-lint -v /etc/ansible/
+docker exec --tty "$container_id" "${ansible_env[@]}" ansible-lint -v /etc/ansible/
 printf "\n"
 
-# Run Ansible playbook.
-printf "%s\n" "${green}Running command: docker exec $container_id env TERM=xterm ansible-playbook /etc/ansible/playbooks/ci_setup.yml${neutral}"
-docker exec --tty "$container_id" env TERM=xterm env ANSIBLE_FORCE_COLOR=1 ansible-playbook /etc/ansible/playbooks/ci_setup.yml
+# Run Ansible playbook. On failure, dump iworx diagnostics before exiting.
+# /usr/local/interworx/var/log/iworx.log is iworx's own error log (uncaught
+# exceptions, license activation failures, etc.) -- the apache error.log in
+# the same dir is unrelated to playbook failures.
+dump_iworx_diagnostics() {
+  printf "%s\n" "${red}===== iworx diagnostics =====${neutral}"
+  docker exec "$container_id" bash -c '
+    set +e
+    echo "--- iworx.ini license section ---"
+    grep -A2 -B1 "\[iworx.license\]" /usr/local/interworx/iworx.ini 2>&1 || true
+    echo
+    echo "--- /usr/local/interworx/var/log/iworx.log (tail) ---"
+    tail -80 /usr/local/interworx/var/log/iworx.log 2>&1
+  '
+}
+printf "%s\n" "${green}Running command: docker exec $container_id ansible-playbook /etc/ansible/playbooks/ci_setup.yml${neutral}"
+if ! docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml; then
+  dump_iworx_diagnostics
+  exit 1
+fi
 printf "\n"
 
-# Install Ruby and Bundler
+# Install Ruby + Bundler. CentOS 7 uses SCL rh-ruby26 (system ruby is 2.0
+# which is too old for serverspec). Rocky 9 ships ruby 3.0 in AppStream.
 printf "%s\n" "${green}Installing Ruby and Bundler.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y centos-release-scl'
-# The SCL repos installed above also point at the dead mirrorlist; repoint
-# them at vault.centos.org so rh-ruby26 can resolve.
-docker exec --tty "$container_id" env TERM=xterm bash -c "sed -i \
-    -e 's|^mirrorlist=|#mirrorlist=|g' \
-    -e 's|^#[[:space:]]*baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
-    -e 's|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
-    /etc/yum.repos.d/CentOS-SCLo-*.repo"
-docker exec --tty "$container_id" env TERM=xterm bash -c 'yum-config-manager --enable rhel-server-rhscl-7-rpms'
-docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y rh-ruby26'
-docker exec --tty "$container_id" env TERM=xterm bash -c 'source /opt/rh/rh-ruby26/enable; gem install bundler -v "1.17.3"'
+case "$DISTRO" in
+  centos7)
+    docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y centos-release-scl'
+    # The SCL repos installed above also point at the dead mirrorlist; repoint
+    # them at vault.centos.org so rh-ruby26 can resolve.
+    docker exec --tty "$container_id" env TERM=xterm bash -c "sed -i \
+        -e 's|^mirrorlist=|#mirrorlist=|g' \
+        -e 's|^#[[:space:]]*baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+        -e 's|^baseurl=http://mirror.centos.org|baseurl=http://vault.centos.org|g' \
+        /etc/yum.repos.d/CentOS-SCLo-*.repo"
+    docker exec --tty "$container_id" env TERM=xterm bash -c 'yum-config-manager --enable rhel-server-rhscl-7-rpms'
+    docker exec --tty "$container_id" env TERM=xterm bash -c 'yum install -y rh-ruby26'
+    docker exec --tty "$container_id" env TERM=xterm bash -c 'source /opt/rh/rh-ruby26/enable; gem install bundler -v "1.17.3"'
+    ruby_env='PATH="/opt/rh/rh-ruby26/root/usr/local/bin/:${PATH}"; source /opt/rh/rh-ruby26/enable'
+    ;;
+  rocky9)
+    docker exec --tty "$container_id" env TERM=xterm bash -c 'dnf install -y ruby ruby-devel rubygem-bundler gcc redhat-rpm-config make'
+    ruby_env='true'
+    ;;
+  *)
+    printf "%s\n" "${red}Unsupported DISTRO=${DISTRO}${neutral}"
+    exit 1
+    ;;
+esac
 
 # Install Gems and Run Serverspec
 printf "%s\n" "${green}Installing deps and running tests.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm bash -c 'PATH="/opt/rh/rh-ruby26/root/usr/local/bin/:${PATH}"; source /opt/rh/rh-ruby26/enable; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake'
+docker exec --tty "$container_id" env TERM=xterm bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake spec:${DISTRO}"
 
 # Remove the Docker container (if configured).
 if [ "$cleanup" = true ]; then

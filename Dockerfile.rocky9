@@ -1,0 +1,44 @@
+FROM --platform=linux/amd64 rockylinux:9
+ENV container=docker
+WORKDIR /etc/ansible
+
+# for details on running systemd in a container, see:
+#  https://hub.docker.com/_/centos/  (same pattern applies to Rocky)
+RUN dnf -y install --setopt=install_weak_deps=False \
+        systemd \
+        epel-release \
+    && dnf -y install --setopt=install_weak_deps=False \
+        sudo which git openssh-server procps-ng iproute \
+        python3 python3-pip \
+        ansible-core \
+    && dnf clean all \
+    && pip3 install --no-cache-dir 'ansible-lint<6' \
+    && ansible-galaxy collection install \
+        community.general \
+        community.mysql \
+        ansible.posix
+
+RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == systemd-tmpfiles-setup.service ] || rm -f $i; done); \
+    rm -f /lib/systemd/system/multi-user.target.wants/*;\
+    rm -f /etc/systemd/system/*.wants/*;\
+    rm -f /lib/systemd/system/local-fs.target.wants/*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*udev*; \
+    rm -f /lib/systemd/system/sockets.target.wants/*initctl*; \
+    rm -f /lib/systemd/system/basic.target.wants/*;\
+    rm -f /lib/systemd/system/anaconda.target.wants/*;
+
+# Disable requiretty, and add local inventory file. Also ensure /etc/sysctl.d
+# exists -- the rockylinux:9 base image strips it but iworx 8's goiworx
+# license activation throws an uncaught exception when the dir is missing.
+# Stub /etc/default/grub so the playbook's grub-cmdline quota task has a
+# line to match (real EL9 hosts get this from grub2-tools).
+RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/' /etc/sudoers && \
+    echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts && \
+    mkdir -p /etc/sysctl.d && \
+    echo 'GRUB_CMDLINE_LINUX_DEFAULT="quiet"' > /etc/default/grub && \
+    printf '#!/bin/sh\nexit 0\n' > /sbin/grub2-mkconfig && \
+    chmod +x /sbin/grub2-mkconfig
+
+STOPSIGNAL SIGRTMIN+3
+VOLUME [ "/sys/fs/cgroup" ]
+CMD ["/usr/sbin/init"]
