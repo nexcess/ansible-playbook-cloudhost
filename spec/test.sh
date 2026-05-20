@@ -67,9 +67,43 @@ printf "%s\n" "${green}Linting Ansible role/playbook.${neutral}"
 docker exec --tty "$container_id" "${ansible_env[@]}" ansible-lint -v /etc/ansible/
 printf "\n"
 
-# Run Ansible playbook.
+# Run Ansible playbook. On failure, dump iworx diagnostics before exiting.
+dump_iworx_diagnostics() {
+  printf "%s\n" "${red}===== iworx diagnostics =====${neutral}"
+  docker exec "$container_id" bash -c '
+    set +e
+    echo "--- id iworx / id interworx ---"
+    id iworx 2>&1
+    id interworx 2>&1
+    echo
+    echo "--- file ~iworx/bin/goiworx.pex ---"
+    file ~iworx/bin/goiworx.pex 2>&1
+    ls -la ~iworx/bin/goiworx.pex 2>&1
+    echo
+    echo "--- ~iworx/bin/goiworx.pex --help (or first failure) ---"
+    ~iworx/bin/goiworx.pex --help 2>&1 | head -40
+    echo "(exit=$?)"
+    echo
+    echo "--- log files under ~iworx/var/log/ ---"
+    find ~iworx/var/log -type f 2>&1
+    for f in $(find ~iworx/var/log -type f 2>/dev/null); do
+      echo "=== $f (tail) ==="
+      tail -50 "$f" 2>&1
+    done
+    echo
+    echo "--- /var/log/iworx* and /var/log/messages tail ---"
+    ls /var/log/iworx* 2>&1
+    tail -40 /var/log/messages 2>&1 | tail -40
+    echo
+    echo "--- iworx.ini license section ---"
+    grep -A2 -B1 "\[iworx.license\]" /usr/local/interworx/iworx.ini 2>&1 || true
+  '
+}
 printf "%s\n" "${green}Running command: docker exec $container_id ansible-playbook /etc/ansible/playbooks/ci_setup.yml${neutral}"
-docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml
+if ! docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml; then
+  dump_iworx_diagnostics
+  exit 1
+fi
 printf "\n"
 
 # Install Ruby + Bundler. CentOS 7 uses SCL rh-ruby26 (system ruby is 2.0
