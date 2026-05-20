@@ -30,9 +30,12 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
 # Disable requiretty, and add local inventory file. Also ensure /etc/sysctl.d
 # exists -- the rockylinux:9 base image strips it but iworx 8's goiworx
 # license activation throws an uncaught exception when the dir is missing.
+# Stub /etc/default/grub so the playbook's grub-cmdline quota task has a
+# line to match (real EL9 hosts get this from grub2-tools).
 RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/' /etc/sudoers && \
     echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts && \
-    mkdir -p /etc/sysctl.d
+    mkdir -p /etc/sysctl.d && \
+    echo 'GRUB_CMDLINE_LINUX_DEFAULT="quiet"' > /etc/default/grub
 
 STOPSIGNAL SIGRTMIN+3
 VOLUME [ "/sys/fs/cgroup" ]
