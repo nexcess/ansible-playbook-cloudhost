@@ -27,9 +27,12 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
     rm -f /lib/systemd/system/basic.target.wants/*;\
     rm -f /lib/systemd/system/anaconda.target.wants/*;
 
-# Disable requiretty, and add local inventory file
+# Disable requiretty, and add local inventory file. Also ensure /etc/sysctl.d
+# exists -- the rockylinux:9 base image strips it but iworx 8's goiworx
+# license activation throws an uncaught exception when the dir is missing.
 RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/' /etc/sudoers && \
-    echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts
+    echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts && \
+    mkdir -p /etc/sysctl.d
 
 STOPSIGNAL SIGRTMIN+3
 VOLUME [ "/sys/fs/cgroup" ]
