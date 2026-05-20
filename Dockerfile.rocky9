@@ -35,7 +35,9 @@ RUN (cd /lib/systemd/system/sysinit.target.wants/; for i in *; do [ $i == system
 RUN sed -i -e 's/^\(Defaults\s*requiretty\)/#--- \1/' /etc/sudoers && \
     echo -e '[local]\nlocalhost ansible_connection=local' > /etc/ansible/hosts && \
     mkdir -p /etc/sysctl.d && \
-    echo 'GRUB_CMDLINE_LINUX_DEFAULT="quiet"' > /etc/default/grub
+    echo 'GRUB_CMDLINE_LINUX_DEFAULT="quiet"' > /etc/default/grub && \
+    printf '#!/bin/sh\nexit 0\n' > /sbin/grub2-mkconfig && \
+    chmod +x /sbin/grub2-mkconfig
 
 STOPSIGNAL SIGRTMIN+3
 VOLUME [ "/sys/fs/cgroup" ]
