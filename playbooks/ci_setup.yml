@@ -65,7 +65,7 @@
     # iworx 8 defaults to mod_suphp; the spec tests expect php-fpm (matching
     # the EL7 build's baseline). Switch the install mode explicitly.
     - name: Switch iworx PHP install mode to php-fpm
-      command: nodeworx -unv -c Http -a updatePhpMode --php_mode=fpm
+      command: nodeworx -unv -c Http -a updatePhpMode --php_mode=php-fpm
     # Production uses Puppet to register the installed PHP versions with
     # InterWorx. CI doesn't run Puppet, so do it here for both EL7 (multi-
     # PHP php56/70/71) and EL9 (single iw_php_ver, e.g. /opt/remi/php81
