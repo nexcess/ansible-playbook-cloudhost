@@ -52,8 +52,14 @@
       vars:
         php_prefix: "php71"
       when: ansible_distribution_major_version == '7'
-    - nexcess.interworx
+    # nexcess.mariadb must run before nexcess.interworx so MariaDB is
+    # already set up (service installed + running) when the iworx install
+    # script tries to talk to it. The production setup.yml uses the same
+    # order; ci_setup.yml had them swapped, which on EL9 caused the iworx
+    # installer to fail with a mysqld.service symlink conflict and an
+    # unreachable mysql socket.
     - nexcess.mariadb
+    - nexcess.interworx
   post_tasks:
     - include: tasks/cloudhost.yml mode="post"
     # Production uses Puppet to register the installed PHP versions with
