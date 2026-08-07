@@ -1,6 +1,6 @@
 ---
 
-- include: tasks/swap.yaml
+- include: tasks/swap.yml
   when: mode == 'pre'
 
 - name: Ensure base packages are up to date
