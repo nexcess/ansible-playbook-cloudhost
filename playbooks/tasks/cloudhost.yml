@@ -1,4 +1,8 @@
 ---
+
+- include: tasks/swap.yml
+  when: mode == 'pre'
+
 - name: Ensure base packages are up to date
   yum:
     name: '*'
