@@ -1,8 +1,12 @@
 ---
-# Rules below are demoted from failure to warning so ansible-lint 5.x can
-# run cleanly against this repo. The findings are mostly in upstream roles
-# (nexcess.mariadb, nexcess.php) that target ansible 2.9 idioms; fixing
-# them is out of scope here.
+# Rules below are suppressed outright (skip_list) so ansible-lint 5.x can run
+# cleanly against this repo. The findings are mostly in upstream roles
+# (nexcess.mariadb, nexcess.php) that target ansible 2.9 idioms; fixing them is
+# out of scope here.
+#
+# Note this is skip_list, not warn_list: these rules are not reported at all.
+# warn_list would surface them non-fatally, but EL7's pinned ansible-lint 4.2.0
+# predates that key, so it can't be used while centos7 is in the CI matrix.
 skip_list:
   - command-instead-of-module
   - command-instead-of-shell

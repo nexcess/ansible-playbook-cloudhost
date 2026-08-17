@@ -15,4 +15,9 @@ local-testing/network.yaml
 local-testing/interworx.yaml
 local-testing/apache.yaml
 local-testing/hosts.ini
-local-testing/deployable-vars.yml
+deployable-vars.yml
+
+## Agent/pipeline working state -- never repo content
+work-output/
+SESSION_HANDOFF.md
+PLAN.md

@@ -54,11 +54,10 @@ wrong is the most common reason a variable "isn't being picked up".
    Only `network.yaml` has a live consumer — the upstream `nexcess.server` role reads
    `nexcess_firewall::cidr_blocks` (office/VPN and login-server SSH allowlists) and
    `r1soft::agent::internal_ips` (backup agent, port 1167), each with a `default()` fallback, so a
-   missing key degrades to a closed-off rule rather than an error. `interworx.yaml`'s
-   `interworx::*` keys are read only by `playbooks/tasks/iworx-ini.yml` and
-   `playbooks/tasks/iworx-packages.yml`, both orphaned — revive either and it needs
-   `interworx.yaml` present in `project_vars/` or it fails on an undefined `hostvars` key.
-   `apache.yaml` has no consumer at all right now.
+   missing key degrades to a closed-off rule rather than an error. `interworx.yaml` and
+   `apache.yaml` have no consumer at all: the only two tasks that ever read `interworx::*` keys
+   were removed in `7f13a46` as redundant with Puppet, and deleted outright afterwards.
+   `./playbook` still fetches all three files.
 
 7. **`-e @file.yml` extra vars** — highest precedence. `local-testing/Dockerfile` passes
    `deployable-vars.yml`, `network.yaml`, `interworx.yaml`, and `apache.yaml` this way, bypassing

@@ -7,8 +7,7 @@ Ansible playbooks that install and manage Nexcess CloudHost servers with InterWo
 Every CloudHost build needs InterWorx, multi-version PHP, MariaDB, and Puppet enrollment stood up
 identically, so this repo owns that sequence. **Most of what runs is not in this repo**: `roles/`
 and `inventories/` are both gitignored. Roles are fetched by `ansible-galaxy` from
-[`requirements.yml`](requirements.yml) — six installed, five applied (`nexcess.repo` is installed
-but referenced by no play and no meta dependency), plus four that arrive as `meta/main.yml`
+[`requirements.yml`](requirements.yml) — five, all applied, plus four that arrive as `meta/main.yml`
 dependencies of `nexcess.server` and `nexcess.php` (`nexcess.firewall`, `nexcess.kernelcare`,
 `nexcess.repo-epel`, `nexcess.repo-remi` — each conditional, and `kernelcare_included` defaults
 false, so being pulled in is not the same as running). Inventories are supplied by the caller. What
@@ -90,9 +89,6 @@ playbooks/
     import-dev-{wordpress,magento}.yml   # rewrite wp-config.php / env.php DB creds + base URLs
     install-app.yml          # dispatches on nex_app_type
     install-app-{wordpress,magento-2}.yml # nkwordpress/nkmagento2 install + redis cache
-    iworx-ini.yml            # ORPHANED, as are the next two — nothing includes any of them.
-    iworx-packages.yml       #   The first two read interworx::* Hiera keys; manage-services
-    manage-services.yml      #   removes polkit and disables certmonger/lvmetad.
 spec/                        # serverspec suite — see TESTS.md
   test.sh                    # CI driver: docker build/run, galaxy install, ansible-lint, playbook, rake spec
   spec_helper.rb             # serverspec exec backend (runs inside the container)
@@ -105,7 +101,7 @@ ref/
 Dockerfile.centos7           # EL7 CI image: ansible 2.9.27 + ansible-lint 4.2.0, vault.centos.org
 Dockerfile.rocky9            # EL9 CI image: ansible-core + ansible-lint <6, plus community.general/mysql + ansible.posix
 .travis.yml                  # CI: matrix of DISTRO=centos7|rocky9, runs spec/test.sh
-.ansible-lint                # skip_list — despite its header comment, skip_list suppresses a rule outright, not demotes it
+.ansible-lint                # skip_list: the listed rules are not reported at all (warn_list can't be used while EL7 pins ansible-lint 4.2.0)
 Rakefile / Gemfile / .rspec  # rake spec:<distro>, derived from the spec/ subdirectory names
 Vagrantfile                  # CentOS 7 VirtualBox box that provisions with ci_setup.yml
 local-testing/               # manual Rocky 9 VM test rig — see local-testing/README.md
@@ -183,8 +179,7 @@ docker exec -it cloudhost-ci bash -c \
   (`iw_activate_license` defaults true and nothing here turns it off), and activation returning
   non-zero is fatal too. None of those three are set in `group_vars/`, so they must come from the
   inventory or `-e`. Only throwaway values belong in the repo (`spec/vars.yml`,
-  `local-testing/README.md`); note `.gitignore` covers `local-testing/deployable-vars.yml` but not
-  a root-level one.
+  `local-testing/README.md`); `.gitignore` covers `deployable-vars.yml` at any depth.
 - Before touching the CI container plumbing or adding a distro, read [`ref/ci.md`](ref/ci.md).
   Every `--cgroupns=host`/`vault.centos.org`/`/etc/sysctl.d`-style workaround documents a specific
   failure it prevents, and `test.sh` rebuilds only when the image tag is absent — so a Dockerfile
