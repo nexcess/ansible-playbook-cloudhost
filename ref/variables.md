@@ -81,18 +81,18 @@ or from `-e`. Anything you add to `project_vars/` is invisible to it.
 ## CI's deliberate inversion
 
 `ci_setup.yml` loads `group_vars/cloudhost.yml`, then `spec/vars.yml`, then `os_vars/` — in that
-order, and the order is load-bearing. `spec/vars.yml` pins `iw_php_ver: "7.3"` and
-`iw_mysql_ver: "10.6"` for the EL7 baseline; loading `os_vars/` afterwards lets `Rocky-9.yml`'s
-8.1/11.4 win on EL9. Reverse the two and CI tests the wrong versions on Rocky — but the two failure
-modes differ. PHP is the silent one: `spec/rocky9/cloudhost_iworx_spec.rb` only
-asserts the default matches `/opt/remi/php\d+`, so a php73 default would pass. MariaDB isn't
-silent — `mariadb_version: "11.4"` comes from `os_vars/Rocky-9.yml` either way, so 11.4 still gets
-installed and the db spec still passes; what breaks is the iworx installer being handed `-m 10.6`
-against it.
+order, and the order is load-bearing. `spec/vars.yml` pins `iw_php_ver: "7.3"` for the EL7
+baseline; loading `os_vars/` afterwards lets `Rocky-9.yml`'s 8.1/11.4 win on EL9. Reverse the two
+and CI tests the wrong PHP on Rocky, silently — `spec/rocky9/cloudhost_iworx_spec.rb` only asserts
+the default matches `/opt/remi/php\d+`, so a php73 default would pass.
 
-A second side effect: those pins exist only in CI. Neither `os_vars/CentOS-7.yml` nor
-`group_vars/` sets `iw_mysql_ver`/`iw_php_ver`, so a real EL7 build runs the InterWorx installer
-with `-m system -p system` while CI EL7 runs it with `10.6`/`7.3`.
+**`iw_mysql_ver` must stay `"system"` on EL7.** The iworx installer builds its MariaDB repo as
+`yum.mariadb.org/<ver>/<dist>-amd64` and maps EL7 to `centos7-amd64`, a directory MariaDB has
+deleted — only `rhel7-amd64` survives, upstream and on the Nexcess mirror. Any explicit `-m`
+therefore writes a repo that 404s, and that one dead repo fails every later yum call inside the
+install script. `"system"` short-circuits the repo setup entirely and uses the MariaDB that
+`nexcess.mariadb` installed moments earlier from a working `rhel7-amd64` URL. Production passes
+`-m system -p system` for the same reason, so CI now matches it on the MariaDB side.
 
 `spec/vars.yml`'s remaining keys sort into three groups. The credentials are load-bearing —
 `iw_master_email`, `iw_master_password`, `iw_license_key` are set nowhere else, and

@@ -9,7 +9,14 @@ iw_ns2: 'ns2.nexcess.net'
 iw_ns3: 'ns3.nexcess.net'
 iw_setup_ssl: false
 iw_skip_hosts_edit: true
-iw_mysql_ver: "10.6"
+# "system" tells the iworx installer to use the MariaDB already on the box --
+# nexcess.mariadb installs it just before nexcess.interworx runs. Do NOT pin a
+# version here: the installer maps EL7 to a yum.mariadb.org/<ver>/centos7-amd64
+# path that MariaDB has deleted (only rhel7-amd64 survives, upstream and on our
+# mirror), so any explicit -m makes it write a 404 repo that then breaks every
+# later yum call in the script. Production passes "system" for the same reason.
+# Only EL7 reads this -- os_vars/Rocky-9.yml sets 11.4 and loads afterwards.
+iw_mysql_ver: "system"
 iw_php_ver: "7.3"
 firewall_included: false
 server_set_sysctl_base: false
