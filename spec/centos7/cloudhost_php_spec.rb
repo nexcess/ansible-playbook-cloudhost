@@ -11,3 +11,11 @@ end
 describe package('php71') do
   it { should be_installed }
 end
+
+describe package('php72') do
+  it { should be_installed }
+end
+
+describe package('php73') do
+  it { should be_installed }
+end

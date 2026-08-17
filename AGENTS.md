@@ -157,13 +157,13 @@ docker exec -it cloudhost-ci bash -c \
   gates every task on `mode`, `import.yml` gates all but its opening `set_fact`; `all.yml` and
   `install-app.yml` have **no** `mode` guards and so genuinely run twice today. Adding an
   unguarded task to any of the four means adding it to both passes.
-- **`ci_setup.yml` is a subset of `setup.yml`, not a mirror of it.** It targets `localhost`, drops
-  `base.yml`/`nexcess.server` and `nexcess.puppet`, and runs three EL7 PHP versions to production's
-  five. What *must* stay in step: any newly added role, and `nexcess.mariadb` ahead of
-  `nexcess.interworx` in both. The PHP-count gap is drift (php72/73 were added to `setup.yml`
-  alone), but closing it also means relaxing `spec/centos7/cloudhost_iworx_spec.rb`'s
-  `default_php_version: /opt/remi/php71` assertion. Full divergence list, CI-only additions, and
-  container workarounds: [`ref/ci.md`](ref/ci.md).
+- **`ci_setup.yml` is a subset of `setup.yml`, not a mirror of it.** It targets `localhost` and
+  drops `base.yml`/`nexcess.server` and `nexcess.puppet`. What *must* stay in step: the EL7 PHP set,
+  any newly added role, and `nexcess.mariadb` ahead of `nexcess.interworx` in both. Changing the PHP
+  set also means updating `spec/centos7/cloudhost_iworx_spec.rb`'s pinned
+  `default_php_version: /opt/remi/php73` — `iworx-php-scl.yml` defaults to the highest installed
+  version. Full divergence list, CI-only additions, and container workarounds:
+  [`ref/ci.md`](ref/ci.md).
 - **Per-distro values go in `os_vars/`; per-distro steps are `when:`-gated** on
   `ansible_distribution_major_version` — the multi-PHP stack and the EL7 repo swap on one side,
   the EL9 quota/grub work in `tasks/cloudhost.yml` on the other. `cloudhost-init.sh.j2` branches

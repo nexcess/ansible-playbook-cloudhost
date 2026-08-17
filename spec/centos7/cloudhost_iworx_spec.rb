@@ -25,6 +25,9 @@ describe command('/bin/nodeworx -unv -c Http -a listPhpInstallMode') do
   its(:stdout) { should match /php-fpm/ }
 end
 
+# tasks/iworx-php-scl.yml picks the default with `ls -1r --sort version /opt/remi`,
+# i.e. the highest installed version. Pinned rather than loosened to /opt/remi/php\d+
+# so that changing the EL7 PHP set in ci_setup.yml has to update this line too.
 describe command('/bin/nodeworx -unv -c Http -a queryMultiplePhpOptions') do
-  its(:stdout) { should match /default_php_version\:\ \/opt\/remi\/php71/ }
+  its(:stdout) { should match /default_php_version\:\ \/opt\/remi\/php73/ }
 end

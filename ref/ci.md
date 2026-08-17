@@ -13,15 +13,17 @@ diverge is what keeps a green build from being misleading.
 | Play 4 templates and runs `scripts/cloudhost-init.sh.j2` when `nex_skip_roles` is true | neither branch is ever exercised |
 | EL7 play rewrites `CentOS-Base.repo` to `mirror.us-midwest-1.nexcess.net` | `Dockerfile.centos7` repoints at `vault.centos.org` instead, so the Nexcess mirror path is untested |
 | `base.yml` → `nexcess.server` role | not run at all |
-| `nexcess.php` × 5 (php56/70/71/72/73), gated on `RedHat` **and** major version 7 | × 3 (php56/70/71), gated on major version alone |
+| `nexcess.php` × 5 (php56/70/71/72/73), gated on `RedHat` **and** major version 7 | same five, gated on major version alone |
 | `nexcess.puppet` | not run |
 | Puppet registers installed PHP with InterWorx | `iworx-php-scl.yml` included directly |
 
-**The EL7 PHP counts diverged rather than being designed that way.** php72/php73 were re-added in
-commit `b222a69`, which touched `playbooks/setup.yml` only. Closing the gap is not just a matter of
-copying the roles across: `tasks/iworx-php-scl.yml` sets the default to the highest version found
-under `/opt/remi`, and `spec/centos7/cloudhost_iworx_spec.rb` asserts that default is
-`/opt/remi/php71` — so adding php72/php73 to CI fails that spec until it's relaxed too.
+**The EL7 PHP set is coupled to a spec assertion.** `tasks/iworx-php-scl.yml` picks the default
+with `ls -1r --sort version /opt/remi`, i.e. the highest installed version, and
+`spec/centos7/cloudhost_iworx_spec.rb` pins `default_php_version: /opt/remi/php73` to match. Change
+which PHP versions `ci_setup.yml` installs and that line has to change with it. It's pinned rather
+than loosened to `/opt/remi/php\d+` on purpose, so the coupling fails loudly instead of silently
+accepting whatever landed. (The two sides were out of step until php72/php73 were added to CI —
+`b222a69` had added them to `setup.yml` alone.)
 
 `nexcess.server`'s absence is not an oversight. `TESTS.md` records the reason: the role's
 hosts-file edits don't work inside a Docker container. Its `iw_setup_ssl: false` counterpart skips
