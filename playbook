@@ -23,7 +23,10 @@ ansible-galaxy install -r requirements.yml >/dev/null
 
 ## Suck in puppet-config's network.yaml
 if [[ ! -z "${GITHUB_TOKEN}" ]]; then
-    pushd inventories/$PROJECT/$MODE/project_vars 1>/dev/null
+    if ! pushd inventories/$PROJECT/$MODE/project_vars 1>/dev/null; then
+        echo "!! inventories/$PROJECT/$MODE/project_vars does not exist !!"
+        exit 1
+    fi
     FILE="https://api.github.com/repos/nexcess/puppet-config/contents/data/common.d/network.yaml"
     curl --header "Authorization: token $GITHUB_TOKEN" \
          --header 'Accept: application/vnd.github.v3.raw' \

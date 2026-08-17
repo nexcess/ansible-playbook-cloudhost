@@ -1,7 +1,6 @@
 ---
 
 ## Base Vars
-nexcess_repo_enabled: false
 server_selinux_enforcing: false
 server_mount_opts:
   - point: "/"
