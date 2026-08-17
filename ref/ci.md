@@ -80,11 +80,11 @@ hits this — its `before_install` always builds.
 Five coordinated changes:
 
 1. `playbooks/os_vars/<Distro>-<major>.yml`. Skip it and nothing errors — CI keeps `spec/vars.yml`'s
-   `iw_php_ver: 7.3`/`iw_mysql_ver: 10.6`, `iw_install_script_url` falls back to the role default
-   (the legacy iworx-6 script), and `mariadb_version` falls back to 10.6. You get a
-   wrong-but-plausible install rather than a failure. (On the production path, which has no
-   `spec/vars.yml`, the version fallbacks are instead the role defaults `iw_php_ver`/`iw_mysql_ver:
-   "system"`.)
+   `iw_php_ver: 7.3`, `iw_install_script_url` falls back to the role default (the legacy iworx-6
+   script), and `mariadb_version` falls back to 10.6. You get a wrong-but-plausible install rather
+   than a failure. Set `iw_mysql_ver` if the new distro needs a specific MariaDB from the installer,
+   but see [variables.md](variables.md) first — on EL7 it has to stay `"system"` or the installer
+   writes a 404 repo.
 2. `spec/<distro>/` — the `Rakefile` globs `spec/*` and uses the basename as the task name, and
    `test.sh` invokes `rake spec:${DISTRO}`, so the directory name must equal `DISTRO`.
 3. `Dockerfile.<distro>` — `test.sh` derives the filename from `DISTRO`.
