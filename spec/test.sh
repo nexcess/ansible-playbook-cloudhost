@@ -10,6 +10,9 @@ neutral="$(tput sgr0)"
 
 DISTRO=${DISTRO:-"centos7"}
 cleanup=${cleanup:-"true"}
+# Optional MariaDB series override. os_vars/ loads last in ci_setup.yml, so only
+# -e outranks it -- see ref/ci.md. Empty means "use the distro default".
+MARIADB_VERSION=${MARIADB_VERSION:-""}
 container_id=${container_id:-$(date +%s)}
 docker_image="nexcess/ansible-playbook-cloudhost:${DISTRO}"
 dockerfile="Dockerfile.${DISTRO}"
@@ -62,6 +65,13 @@ printf "\n"
 # the env var is silently ignored there.
 ansible_env=(env TERM=xterm ANSIBLE_FORCE_COLOR=1 ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED=false)
 
+# Both vars matter: mariadb_version picks nexcess.mariadb's repo URL,
+# iw_mysql_ver becomes the iworx installer's -m flag.
+playbook_args=()
+if [ -n "$MARIADB_VERSION" ]; then
+  playbook_args+=(-e "mariadb_version=${MARIADB_VERSION}" -e "iw_mysql_ver=${MARIADB_VERSION}")
+fi
+
 ## Run Ansible Lint
 printf "%s\n" "${green}Linting Ansible role/playbook.${neutral}"
 docker exec --tty "$container_id" "${ansible_env[@]}" ansible-lint -v /etc/ansible/
@@ -82,11 +92,32 @@ dump_iworx_diagnostics() {
     tail -80 /usr/local/interworx/var/log/iworx.log 2>&1
   '
 }
-printf "%s\n" "${green}Running command: docker exec $container_id ansible-playbook /etc/ansible/playbooks/ci_setup.yml${neutral}"
-if ! docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml; then
+# Travis terminates a job after 10 minutes with no log output. Ansible prints a
+# TASK header and then nothing until the task returns, so any single slow task
+# reads to Travis as a stalled build -- nexcess.interworx's "Activate Interworx
+# License" did exactly that in job 2854.2, killing the run mid-playbook. Emit a
+# heartbeat for the duration so silence never reaches the limit.
+heartbeat() {
+  while true; do
+    sleep 120
+    printf "%s\n" "${green}... playbook still running (${SECONDS}s elapsed)${neutral}"
+  done
+}
+heartbeat &
+heartbeat_pid=$!
+# disowned so bash does not print a "Terminated" notice next to real failures
+disown "$heartbeat_pid" 2>/dev/null || true
+stop_heartbeat() { kill "$heartbeat_pid" 2>/dev/null || true; }
+trap stop_heartbeat EXIT
+
+printf "%s\n" "${green}Running command: docker exec $container_id ansible-playbook /etc/ansible/playbooks/ci_setup.yml ${playbook_args[*]}${neutral}"
+if ! docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml "${playbook_args[@]}"; then
+  stop_heartbeat
   dump_iworx_diagnostics
   exit 1
 fi
+stop_heartbeat
+trap - EXIT
 printf "\n"
 
 # Install Ruby + Bundler. CentOS 7 uses SCL rh-ruby26 (system ruby is 2.0
@@ -119,7 +150,8 @@ esac
 
 # Install Gems and Run Serverspec
 printf "%s\n" "${green}Installing deps and running tests.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake spec:${DISTRO}"
+docker exec --tty "$container_id" env TERM=xterm MARIADB_VERSION="${MARIADB_VERSION}" \
+  bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake spec:${DISTRO}"
 
 # Remove the Docker container (if configured).
 if [ "$cleanup" = true ]; then
