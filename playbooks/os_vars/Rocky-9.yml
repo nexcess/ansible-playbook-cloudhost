@@ -6,6 +6,6 @@ iw_install_script_url: 'https://updates.interworx.com/interworx/8/install.sh'
 
 iw_use_custom_theme: false
 
-iw_mysql_ver: "12.3"
-mariadb_version: "12.3"
+iw_mysql_ver: "11.4"
+mariadb_version: "11.4"
 iw_php_ver: "8.1"

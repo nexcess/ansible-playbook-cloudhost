@@ -35,7 +35,7 @@ wrong is the most common reason a variable "isn't being picked up".
 4. **`playbooks/os_vars/`** — loaded in `base.yml`'s and `ci_setup.yml`'s `pre_tasks` by filename
    match on `{{ ansible_distribution }}-{{ ansible_distribution_major_version }}.yml`. Per-distro
    *values* belong here. `CentOS-7.yml` selects the iworx 6 archive repo, the custom theme, and a
-   php56 base symlink; `Rocky-9.yml` selects the iworx 8 installer, MariaDB 12.3, and PHP 8.1.
+   php56 base symlink; `Rocky-9.yml` selects the iworx 8 installer, MariaDB 11.4, and PHP 8.1.
 
    A filename that matches nothing falls through silently to source 1.
 
@@ -82,7 +82,7 @@ or from `-e`. Anything you add to `project_vars/` is invisible to it.
 
 `ci_setup.yml` loads `group_vars/cloudhost.yml`, then `spec/vars.yml`, then `os_vars/` — in that
 order, and the order is load-bearing. `spec/vars.yml` pins `iw_php_ver: "7.3"` for the EL7
-baseline; loading `os_vars/` afterwards lets `Rocky-9.yml`'s 8.1/12.3 win on EL9. Reverse the two
+baseline; loading `os_vars/` afterwards lets `Rocky-9.yml`'s 8.1/11.4 win on EL9. Reverse the two
 and CI tests the wrong PHP on Rocky, silently — `spec/rocky9/cloudhost_iworx_spec.rb` only asserts
 the default matches `/opt/remi/php\d+`, so a php73 default would pass.
 

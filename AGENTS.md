@@ -73,7 +73,7 @@ playbooks/
   group_vars/                # see Variables
   os_vars/
     CentOS-7.yml             # iworx 6 archive repo, custom theme, php56 base symlink
-    Rocky-9.yml              # iworx 8 installer, MariaDB 12.3, PHP 8.1, no custom theme
+    Rocky-9.yml              # iworx 8 installer, MariaDB 11.4, PHP 8.1, no custom theme
   scripts/
     cloudhost-init.sh.j2     # the entire prebuilt-image path; destructive (rewrites fstab, repartitions swap, rotates every iworx DB password)
   tasks/                     # all.yml/cloudhost.yml/import.yml/install-app.yml are the four included twice per play (see Conventions)
@@ -91,16 +91,19 @@ playbooks/
     install-app-{wordpress,magento-2}.yml # nkwordpress/nkmagento2 install + redis cache
 spec/                        # serverspec suite — see TESTS.md
   test.sh                    # CI driver: docker build/run, galaxy install, ansible-lint, playbook, rake spec
+                             #   honours $MARIADB_VERSION to override the distro's MariaDB series
   spec_helper.rb             # serverspec exec backend (runs inside the container)
   vars.yml                   # placeholder iworx creds + post_run_reboot: false (its firewall/SSL/sysctl keys are inert in CI)
   centos7/                   # *_spec.rb: MariaDB 10.6, php56/70/71, iworx, httpd
-  rocky9/                    # *_spec.rb: MariaDB 12.3, iworx, httpd (no php spec)
+  rocky9/                    # *_spec.rb: MariaDB (version from os_vars or
+                             #   $MARIADB_VERSION), iworx, httpd (no php spec)
 ref/
   variables.md               # the seven variable sources, their precedence, and which paths load them
   ci.md                      # every way CI diverges from production, + container workarounds
 Dockerfile.centos7           # EL7 CI image: ansible 2.9.27 + ansible-lint 4.2.0, vault.centos.org
 Dockerfile.rocky9            # EL9 CI image: ansible-core + ansible-lint <6, plus community.general/mysql + ansible.posix
-.travis.yml                  # CI: matrix of DISTRO=centos7|rocky9, runs spec/test.sh
+.travis.yml                  # CI: DISTRO=centos7|rocky9, plus a rocky9 job pinning
+                             #   MARIADB_VERSION=12.3; all run spec/test.sh
 .ansible-lint                # skip_list: the listed rules are not reported at all (warn_list can't be used while EL7 pins ansible-lint 4.2.0)
 Rakefile / Gemfile / .rspec  # rake spec:<distro>, derived from the spec/ subdirectory names
 Vagrantfile                  # CentOS 7 VirtualBox box that provisions with ci_setup.yml
@@ -130,6 +133,10 @@ ansible-galaxy install -r requirements.yml
 spec/test.sh                             # defaults to DISTRO=centos7
 DISTRO=rocky9 spec/test.sh
 cleanup=false DISTRO=rocky9 spec/test.sh # keep the container around to debug
+
+# Same as the third Travis job: install a MariaDB series other than the one
+# os_vars/Rocky-9.yml ships, and assert against it. See ref/ci.md.
+MARIADB_VERSION=12.3 DISTRO=rocky9 spec/test.sh
 
 # Lint only (CI runs this inside the container against /etc/ansible/)
 ansible-lint -v .

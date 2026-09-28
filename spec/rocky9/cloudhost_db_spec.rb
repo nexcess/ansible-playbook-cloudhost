@@ -1,7 +1,9 @@
 require 'spec_helper'
 
+mariadb_version = expected_mariadb_version('Rocky-9.yml')
+
 describe package('MariaDB-server') do
-  it { should be_installed.with_version('12.3') }
+  it { should be_installed.with_version(mariadb_version) }
 end
 
 describe package('MariaDB-client') do
@@ -27,7 +29,7 @@ end
 # clear.
 describe command(iworx_mysql('SELECT VERSION()')) do
   its(:exit_status) { should eq 0 }
-  its(:stdout) { should match(/^12\.3\./) }
+  its(:stdout) { should match(/^#{Regexp.escape(mariadb_version)}\./) }
 end
 
 # enabled + running + listening all pass on a server whose datadir is

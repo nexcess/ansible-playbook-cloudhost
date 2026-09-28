@@ -1,6 +1,22 @@
 require 'serverspec'
+require 'yaml'
 
 set :backend, :exec
+
+# The MariaDB series this run should have installed. Defaults to the distro's
+# own os_vars entry so the assertion tracks whatever production actually ships
+# -- bump that file and the spec follows. .travis.yml's MARIADB_VERSION matrix
+# job overrides both it and the playbook (via -e in spec/test.sh) to exercise a
+# series we are not shipping yet. test.sh always exports the variable, so an
+# empty value means "no override".
+def expected_mariadb_version(os_vars_file)
+  override = ENV['MARIADB_VERSION'].to_s
+  return override unless override.empty?
+
+  YAML.load_file(
+    File.expand_path("../playbooks/os_vars/#{os_vars_file}", __dir__)
+  ).fetch('mariadb_version')
+end
 
 # InterWorx rotates MariaDB's root credentials during its install and uses a
 # provisioned `iworx` superuser instead, recording the connection in iworx.ini:

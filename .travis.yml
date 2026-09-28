@@ -8,6 +8,10 @@ env:
   jobs:
     - DISTRO=centos7
     - DISTRO=rocky9
+    # Forward-looking cover for COM-275 (Magento 2.4.9 needs MariaDB 12.3).
+    # Production stays on os_vars/Rocky-9.yml's 11.4; this job overrides it via
+    # -e so the 12.3 path is proven without shipping it. See ref/ci.md.
+    - DISTRO=rocky9 MARIADB_VERSION=12.3
 
 before_install:
   - docker build -t "nexcess/ansible-playbook-cloudhost:${DISTRO}" -f "Dockerfile.${DISTRO}" .

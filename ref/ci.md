@@ -53,6 +53,48 @@ Any role you add to `setup.yml` belongs in `ci_setup.yml` too, and `nexcess.mari
 of `nexcess.interworx` in both — the iworx installer talks to MariaDB during its own run, and on
 EL9 the reverse order fails with a `mysqld.service` symlink conflict and an unreachable socket.
 
+## The MariaDB version matrix
+
+`.travis.yml` runs three jobs, not two: `DISTRO=centos7`, `DISTRO=rocky9`, and
+`DISTRO=rocky9 MARIADB_VERSION=12.3`.
+
+**What production ships is `os_vars/Rocky-9.yml`'s `mariadb_version` — currently 11.4.** The third
+job exists so the 12.3 path Magento 2.4.9 needs (COM-275) is proven before anything switches to it.
+Nothing in the repo installs 12.3 by default.
+
+`spec/test.sh` turns `MARIADB_VERSION` into two extra vars:
+
+```bash
+-e mariadb_version=12.3   # nexcess.mariadb's repo URL: mirror.mariadb.org/yum/<ver>/rhel9-amd64
+-e iw_mysql_ver=12.3      # the iworx installer's -m flag: yum.mariadb.org/<ver>/rhel9-amd64
+```
+
+Both are needed — one picks the repo the role installs from, the other the repo the iworx installer
+writes, and they are separate code paths. `-e` is used rather than editing `os_vars/` because
+`ci_setup.yml` loads `os_vars/` in `pre_tasks` via `include_vars`, and only extra vars outrank that
+(see [variables.md](variables.md)). The same variable is re-exported for the `rake spec` step so the
+spec's version assertions match what was installed.
+
+`spec/rocky9/cloudhost_db_spec.rb` does not hardcode a version. It calls `expected_mariadb_version`
+(in `spec/spec_helper.rb`), which returns `$MARIADB_VERSION` when set and otherwise reads
+`mariadb_version` straight out of `os_vars/Rocky-9.yml` — so bumping that file moves the assertion
+with it, and the two can never silently disagree. `test.sh` always exports the variable, so an empty
+value means "no override".
+
+Two things to know before changing this:
+
+- **A new series needs the InterWorx installer's blessing, not just a live repo.** `iw_mysql_ver`
+  goes straight into a shell `command` with no validation, but `install-interworx.sh`'s
+  `mariaverscheck` `error_print_die`s on a value it doesn't know, and `mariapwnative` has a second
+  per-series case for the post-install auth plugin. As of iworx 8 both list
+  `10.3`–`10.11`, `11.4`, `11.8`, `12.3`.
+- **MariaDB deletes old series from `yum.mariadb.org`.** 12.0–12.2 are already gone, which is why
+  12.3 is the 12.x target. A series that gets pulled upstream turns this job red even though nothing
+  in the repo changed.
+
+The job is a blocking check. If an upstream 12.3 change starts failing builds for an unrelated PR,
+the fix is a `matrix.allow_failures` entry for that env line — not silently dropping the job.
+
 ## Container plumbing
 
 Each workaround in `spec/test.sh` and the Dockerfiles fixes a specific failure; read the comments
@@ -90,7 +132,8 @@ Five coordinated changes:
 2. `spec/<distro>/` — the `Rakefile` globs `spec/*` and uses the basename as the task name, and
    `test.sh` invokes `rake spec:${DISTRO}`, so the directory name must equal `DISTRO`.
 3. `Dockerfile.<distro>` — `test.sh` derives the filename from `DISTRO`.
-4. A `.travis.yml` `env.jobs` matrix entry.
+4. A `.travis.yml` `env.jobs` matrix entry. Entries carry more than `DISTRO` now — see The MariaDB
+   version matrix above.
 5. A case arm in `spec/test.sh`, which `exit 1`s on an unknown `DISTRO`. Each arm installs Ruby its
    own way (SCL `rh-ruby26` on centos7, AppStream ruby on rocky9).
 

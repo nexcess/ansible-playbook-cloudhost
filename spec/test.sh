@@ -10,6 +10,9 @@ neutral="$(tput sgr0)"
 
 DISTRO=${DISTRO:-"centos7"}
 cleanup=${cleanup:-"true"}
+# Optional MariaDB series override. os_vars/ loads last in ci_setup.yml, so only
+# -e outranks it -- see ref/ci.md. Empty means "use the distro default".
+MARIADB_VERSION=${MARIADB_VERSION:-""}
 container_id=${container_id:-$(date +%s)}
 docker_image="nexcess/ansible-playbook-cloudhost:${DISTRO}"
 dockerfile="Dockerfile.${DISTRO}"
@@ -62,6 +65,13 @@ printf "\n"
 # the env var is silently ignored there.
 ansible_env=(env TERM=xterm ANSIBLE_FORCE_COLOR=1 ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED=false)
 
+# Both vars matter: mariadb_version picks nexcess.mariadb's repo URL,
+# iw_mysql_ver becomes the iworx installer's -m flag.
+playbook_args=()
+if [ -n "$MARIADB_VERSION" ]; then
+  playbook_args+=(-e "mariadb_version=${MARIADB_VERSION}" -e "iw_mysql_ver=${MARIADB_VERSION}")
+fi
+
 ## Run Ansible Lint
 printf "%s\n" "${green}Linting Ansible role/playbook.${neutral}"
 docker exec --tty "$container_id" "${ansible_env[@]}" ansible-lint -v /etc/ansible/
@@ -82,8 +92,8 @@ dump_iworx_diagnostics() {
     tail -80 /usr/local/interworx/var/log/iworx.log 2>&1
   '
 }
-printf "%s\n" "${green}Running command: docker exec $container_id ansible-playbook /etc/ansible/playbooks/ci_setup.yml${neutral}"
-if ! docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml; then
+printf "%s\n" "${green}Running command: docker exec $container_id ansible-playbook /etc/ansible/playbooks/ci_setup.yml ${playbook_args[*]}${neutral}"
+if ! docker exec --tty "$container_id" "${ansible_env[@]}" ansible-playbook /etc/ansible/playbooks/ci_setup.yml "${playbook_args[@]}"; then
   dump_iworx_diagnostics
   exit 1
 fi
@@ -119,7 +129,8 @@ esac
 
 # Install Gems and Run Serverspec
 printf "%s\n" "${green}Installing deps and running tests.${neutral}"
-docker exec --tty "$container_id" env TERM=xterm bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake spec:${DISTRO}"
+docker exec --tty "$container_id" env TERM=xterm MARIADB_VERSION="${MARIADB_VERSION}" \
+  bash -c "${ruby_env}; cd /etc/ansible/ && bundle install --path vendor/ && bundle exec rake spec:${DISTRO}"
 
 # Remove the Docker container (if configured).
 if [ "$cleanup" = true ]; then
