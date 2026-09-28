@@ -114,6 +114,11 @@ before touching them.
 - `ANSIBLE_INVALID_TASK_ATTRIBUTE_FAILED=false` — demotes the deprecated `static:` attribute in
   `nexcess.php`'s include from fatal to a warning on ansible-core 2.14+. Silently ignored on EL7's
   pinned 2.9.27.
+- A backgrounded heartbeat around the `ansible-playbook` step — Travis terminates a job after 10
+  minutes with no log output, and ansible prints a TASK header then nothing until the task returns.
+  Any single slow task therefore reads as a stalled build; `nexcess.interworx`'s "Activate InterWorx
+  License" hit this in job `2854.2` and the run was killed mid-playbook with nothing wrong. The
+  heartbeat is `disown`ed so bash doesn't print a `Terminated` notice beside genuine failures.
 
 **Gotcha:** `test.sh` builds the image only when the tag is absent, so a local Dockerfile edit is
 silently ignored until you `docker rmi nexcess/ansible-playbook-cloudhost:<distro>`. Travis never
