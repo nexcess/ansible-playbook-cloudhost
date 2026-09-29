@@ -1,0 +1,96 @@
+# SDD spec check (AI-214). Adapted from nexcess/nexcess-claude
+# ci-templates/spec-check/github/spec-check.yml.example.
+#
+# Passes a PR that adds or changes an OpenSpec spec, or whose description has
+# an "sdd-exception: <reason>" line. The reviewer decides whether the reason
+# holds.
+#
+# The PR description is read from the event that started the run. "edited" is
+# in the trigger types so editing the description re-runs the check; "Re-run
+# jobs" replays the old event, and with it the old description.
+
+name: SDD spec check
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, edited]
+
+permissions:
+  contents: read
+
+jobs:
+  sdd-spec-check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run spec check
+        env:
+          PR_BODY: ${{ github.event.pull_request.body }}
+          BASE_REF: origin/${{ github.event.pull_request.base.ref }}
+        run: |
+          python3 - <<'PYEOF'
+          import os
+          import re
+          import subprocess
+          import sys
+
+          SPEC_PATTERNS = [
+              re.compile(r"^openspec/changes/.+"),
+              re.compile(r"^openspec/specs/.+"),
+          ]
+          # Anchored to the line start (allowing markdown list/quote/code markers)
+          # so prose that merely mentions sdd-exception can't satisfy the check;
+          # an unfilled "<reason>" placeholder doesn't count; the last real
+          # declaration wins. See techdev/wallaby MR !5846.
+          EXCEPTION_RE = re.compile(
+              r"^[ \t>*`-]*sdd-exception:[ \t]*(.+?)[ \t`]*$",
+              re.IGNORECASE | re.MULTILINE,
+          )
+          PLACEHOLDER_RE = re.compile(r"^<.*>$")
+
+          base_ref = os.environ["BASE_REF"]
+          diff = subprocess.run(
+              ["git", "diff", "--name-only", f"{base_ref}...HEAD"],
+              capture_output=True,
+              text=True,
+              check=True,
+          )
+          changed = [line for line in diff.stdout.splitlines() if line]
+
+          specs = [f for f in changed if any(p.search(f) for p in SPEC_PATTERNS)]
+          if specs:
+              print("sdd-spec-check: PASS - OpenSpec change found:")
+              print("\n".join(specs))
+              sys.exit(0)
+
+          description = os.environ.get("PR_BODY", "")
+          reason = None
+          for match in EXCEPTION_RE.finditer(description):
+              candidate = match.group(1).strip()
+              if candidate and not PLACEHOLDER_RE.match(candidate):
+                  reason = candidate
+
+          if reason:
+              print(f"sdd-spec-check: PASS (exception) - {reason}")
+              sys.exit(0)
+
+          print("sdd-spec-check: FAIL")
+          print()
+          print(f"No OpenSpec change in this PR ({base_ref}...HEAD), and no sdd-exception declared.")
+          print()
+          print("There are two ways to pass this check:")
+          print("  1. Add or update a spec under openspec/changes/ or openspec/specs/.")
+          print("  2. Explain why one isn't needed by adding a line like this to the PR description:")
+          print("       sdd-exception: doc-only change, no code affected")
+          print("     The reviewer decides whether the reason holds.")
+          print("     Editing the description re-runs this check by itself;")
+          print("     Re-run jobs reuses the old description.")
+          print()
+          print("Changed files:")
+          print("\n".join(changed))
+          sys.exit(1)
+          PYEOF

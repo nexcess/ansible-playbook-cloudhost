@@ -27,3 +27,9 @@ LetsEncrypt setup, or post-deployment configuration management ([TESTS.md](TESTS
 - [ ] Role-order or role-list changes in `playbooks/setup.yml` are mirrored in
       `playbooks/ci_setup.yml`
 - [ ] Docs (`README.md`/`AGENTS.md`) updated if this changes how the project is built, run, or used
+
+## Spec-driven development
+
+This repo uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
+development. PRs need an OpenSpec change under `openspec/changes/`, or an
+`sdd-exception: <reason>` line in the PR description.
