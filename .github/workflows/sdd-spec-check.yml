@@ -1,7 +1,8 @@
 # SDD spec check (AI-214). Adapted from nexcess/nexcess-claude
 # ci-templates/spec-check/github/spec-check.yml.example.
 #
-# Passes a PR that adds or changes an OpenSpec spec, or whose description has
+# Passes a PR that adds or changes an OpenSpec Markdown file under
+# openspec/changes/ or openspec/specs/, or whose description has
 # an "sdd-exception: <reason>" line. The reviewer decides whether the reason
 # holds.
 #
@@ -38,9 +39,11 @@ jobs:
           import subprocess
           import sys
 
+          # Markdown only: OpenSpec artifacts (proposal, design, tasks, spec) are
+          # all .md, so scaffolding like .gitkeep or config.yaml can't pass.
           SPEC_PATTERNS = [
-              re.compile(r"^openspec/changes/.+"),
-              re.compile(r"^openspec/specs/.+"),
+              re.compile(r"^openspec/changes/.+\.md$"),
+              re.compile(r"^openspec/specs/.+\.md$"),
           ]
           # Anchored to the line start (allowing markdown list/quote/code markers)
           # so prose that merely mentions sdd-exception can't satisfy the check;
@@ -84,6 +87,7 @@ jobs:
           print()
           print("There are two ways to pass this check:")
           print("  1. Add or update a spec under openspec/changes/ or openspec/specs/.")
+          print("     If openspec/ doesn't exist yet, run `npx @fission-ai/openspec init` first.")
           print("  2. Explain why one isn't needed by adding a line like this to the PR description:")
           print("       sdd-exception: doc-only change, no code affected")
           print("     The reviewer decides whether the reason holds.")
