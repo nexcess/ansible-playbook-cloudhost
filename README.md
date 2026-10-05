@@ -75,3 +75,10 @@ Notes
   `iw_master_password`, and `iw_license_key` are all non-empty, and a non-zero activation result
   is fatal as well. CI uses the shared key in `spec/vars.yml`; for a local VM run, take the test
   key from password management as [local-testing/README.md](local-testing/README.md) describes.
+
+Spec-driven development
+-----------------------
+
+This repo uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
+development. PRs need an OpenSpec change under `openspec/changes/`, or an
+`sdd-exception: <reason>` line in the PR description.
