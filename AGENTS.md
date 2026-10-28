@@ -192,6 +192,12 @@ docker exec -it cloudhost-ci bash -c \
   failure it prevents, and `test.sh` rebuilds only when the image tag is absent — so a Dockerfile
   edit looks like it did nothing until you `docker rmi` the tag.
 
+## Spec-driven development
+
+This repo uses [OpenSpec](https://github.com/Fission-AI/OpenSpec) for spec-driven
+development. PRs need an OpenSpec change under `openspec/changes/`, or an
+`sdd-exception: <reason>` line in the PR description.
+
 ## See also
 
 - [README.md](README.md) — what this is and how to get started
