@@ -76,7 +76,18 @@
     - role: nexcess.interworx
       when:
         - not nex_skip_roles | bool
-    - role: nexcess.puppet
+  tasks:
+    - name: Remove /bin/php-config so puppet can manage it
+      file:
+        path: /bin/php-config
+        state: absent
+      when:
+        - nex_env_target is undefined or nex_env_target != 'vagrant'
+        - not nex_skip_roles | bool
+
+    - name: Enroll in puppet
+      include_role:
+        name: nexcess.puppet
       when:
         - nex_env_target is undefined or nex_env_target != 'vagrant'
         - not nex_skip_roles | bool
