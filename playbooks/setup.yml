@@ -82,6 +82,8 @@
         path: /bin/php-config
         state: absent
       when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
         - nex_env_target is undefined or nex_env_target != 'vagrant'
         - not nex_skip_roles | bool
 
