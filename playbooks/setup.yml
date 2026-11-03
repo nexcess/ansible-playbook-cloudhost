@@ -76,6 +76,9 @@
     - role: nexcess.interworx
       when:
         - not nex_skip_roles | bool
+  # The php-config removal and moving nexcess.puppet from roles into tasks (so the
+  # removal can run right before it) can both be reverted once we stop deploying
+  # net new CentOS7 hosts.
   tasks:
     - name: Remove /bin/php-config so puppet can manage it
       file:
