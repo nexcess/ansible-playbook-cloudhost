@@ -76,7 +76,23 @@
     - role: nexcess.interworx
       when:
         - not nex_skip_roles | bool
-    - role: nexcess.puppet
+  # The php-config removal and moving nexcess.puppet from roles into tasks (so the
+  # removal can run right before it) can both be reverted once we stop deploying
+  # net new CentOS7 hosts.
+  tasks:
+    - name: Remove /bin/php-config so puppet can manage it
+      file:
+        path: /bin/php-config
+        state: absent
+      when:
+        - ansible_os_family == 'RedHat'
+        - ansible_distribution_major_version == '7'
+        - nex_env_target is undefined or nex_env_target != 'vagrant'
+        - not nex_skip_roles | bool
+
+    - name: Enroll in puppet
+      include_role:
+        name: nexcess.puppet
       when:
         - nex_env_target is undefined or nex_env_target != 'vagrant'
         - not nex_skip_roles | bool
