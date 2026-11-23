@@ -80,6 +80,13 @@
   # removal can run right before it) can both be reverted once we stop deploying
   # net new CentOS7 hosts.
   tasks:
+    # Ungated: fresh VMs need InterWorx (installed by the role above) first; image
+    # builds need it before cloudhost-init.sh runs license.pex --sync
+    - name: Install interworx-internal-license
+      yum:
+        name: https://imirror.us-midwest-1.nexcess.net/nexcess-kickstart/interworx-internal-license-1.0-4.noarch.rpm
+        state: present
+
     - name: Remove /bin/php-config so puppet can manage it
       file:
         path: /bin/php-config
@@ -110,14 +117,6 @@
         src: scripts/cloudhost-init.sh.j2
         dest: /tmp/cloudhost-init.sh
         mode: 700
-      when:
-        - nex_skip_roles | bool
-
-    # Must land before the init script's license.pex --sync
-    - name: Install interworx-internal-license
-      yum:
-        name: https://imirror.us-midwest-1.nexcess.net/nexcess-kickstart/interworx-internal-license-1.0-4.noarch.rpm
-        state: present
       when:
         - nex_skip_roles | bool
 
