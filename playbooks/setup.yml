@@ -113,6 +113,14 @@
       when:
         - nex_skip_roles | bool
 
+    # Must land before the init script's license.pex --sync
+    - name: Install interworx-internal-license
+      yum:
+        name: https://imirror.us-midwest-1.nexcess.net/nexcess-kickstart/interworx-internal-license-1.0-4.noarch.rpm
+        state: present
+      when:
+        - nex_skip_roles | bool
+
     - name: Run the init script for new cloudhost
       shell:
         cmd: /tmp/cloudhost-init.sh
